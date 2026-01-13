@@ -1,0 +1,13 @@
+# Ollama 설정
+ollama:
+  base_url: "http://localhost:11434"
+  models:
+    - name: "llama2"
+      context_length: 4096
+    - name: "mistral"
+      context_length: 8192
+    - name: "codellama"
+      context_length: 4096
+
+  default_model: "llama2"
+  timeout: 60

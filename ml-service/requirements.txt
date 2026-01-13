@@ -1,0 +1,16 @@
+# FastAPI
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+# ML/DL (CPU 버전)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+transformers>=4.36.0
+safetensors>=0.4.0
+# Utils
+pydantic==2.5.3
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+joblib>=1.3.0
+# Logging
+loguru==0.7.2
