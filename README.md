@@ -281,8 +281,6 @@ ollama serve
 
 ## 👤 만든 사람
 
-- **쿠카** - [GitHub](https://github.com/your-username)
+- **쿠카** - [GitHub](https://github.com/byoneself4023-bit)
 
 ---
-
-⭐ 이 프로젝트가 도움이 되었다면 Star를 눌러주세요!
