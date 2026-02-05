@@ -42,3 +42,9 @@ logs/
 # Next.js build
 .next/
 out/
+
+# Archives
+*.zip
+
+# Reports
+Report.md

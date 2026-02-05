@@ -1,46 +1,45 @@
 services:
-  ml-service:
+  backend:
     build:
-      context: ./ml-service
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: claro-ml-service
+    container_name: claro-backend
     ports:
-      - "8001:8001"
+      - "8010:8010"
     volumes:
-      - /Users/kuka/CIVILCOMPLAINT/models:/root/CIVILCOMPLAINT/models:ro
-      - /Users/kuka/CIVILCOMPLAINT/data:/root/CIVILCOMPLAINT/data:ro
-    environment:
-      - PYTHONUNBUFFERED=1
-    restart: unless-stopped
-
-  llm-service:
-    build:
-      context: ./llm-service
-      dockerfile: Dockerfile
-    container_name: claro-llm-service
-    ports:
-      - "8002:8002"
-    volumes:
-      - /Users/kuka/CIVILCOMPLAINT/models:/root/CIVILCOMPLAINT/models:ro
-      - /Users/kuka/CIVILCOMPLAINT/data:/root/CIVILCOMPLAINT/data:ro
+      - ${MODELS_PATH:-/Users/kuka/CIVILCOMPLAINT/models}:/root/CIVILCOMPLAINT/models:ro
+      - ${DATA_PATH:-/Users/kuka/CIVILCOMPLAINT/data}:/root/CIVILCOMPLAINT/data:ro
+      - ${RESULTS_PATH:-/Users/kuka/CIVILCOMPLAINT/results}:/root/CIVILCOMPLAINT/results:ro
+      - ./backend/data:/app/data
     environment:
       - PYTHONUNBUFFERED=1
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - DEVICE=${DEVICE:-cpu}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://backend:8010
     container_name: claro-frontend
     ports:
-      - "3000:3000"
+      - "3010:3010"
+    environment:
+      - BACKEND_URL=http://backend:8010
     depends_on:
-      - ml-service
-      - llm-service
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
 networks:

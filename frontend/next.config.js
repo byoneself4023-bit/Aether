@@ -1,11 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:8010'}/api/:path*`,
+      },
+      {
+        source: '/health',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:8010'}/health`,
       },
     ];
   },

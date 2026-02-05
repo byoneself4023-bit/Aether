@@ -1,17 +1,31 @@
-FROM node:20-alpine
-
+# === Stage 1: Dependencies ===
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# 의존성 설치
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
-# 소스 복사
+# === Stage 2: Build ===
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
 
-# 빌드
+ARG BACKEND_URL=http://localhost:8010
+ENV BACKEND_URL=${BACKEND_URL}
+
 RUN npm run build
 
-EXPOSE 3000
+# === Stage 3: Runtime ===
+FROM node:20-alpine
+WORKDIR /app
 
-CMD ["npm", "start"]
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+EXPOSE 3010
+ENV PORT=3010
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
