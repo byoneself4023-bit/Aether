@@ -1,0 +1,52 @@
+server:
+  port: 8003
+
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/aether_auth}
+    username: ${SPRING_DATASOURCE_USERNAME:aether}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  flyway:
+    enabled: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+jwt:
+  secret: ${JWT_SECRET:}
+  access-expiration: ${JWT_ACCESS_EXPIRATION:1800000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# Actuator for health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+
+logging:
+  level:
+    com.aether: DEBUG
+    org.springframework.security: DEBUG

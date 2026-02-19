@@ -1,77 +1,106 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { Activity, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Bell, LogOut, Menu } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
+import { logout as logoutApi } from '@/lib/api/auth';
 
 const pageTitles: Record<string, string> = {
-  '/': '민원 상담',
+  '/': '홈',
   '/dashboard': '대시보드',
-  '/history': '상담 히스토리',
-  '/models': '모델 관리',
-  '/settings': '설정',
+  '/dashboard/optimize': '포트폴리오 최적화',
+  '/dashboard/backtest': '백테스트',
+  '/dashboard/chat': 'AI 어시스턴트',
+  '/login': '로그인',
+  '/signup': '회원가입',
 };
 
-type BackendStatus = 'online' | 'offline' | 'checking' | 'mock';
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
 
-export default function Header() {
+export default function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
-  const [backendStatus, setBackendStatus] = useState<BackendStatus>('checking');
+  const router = useRouter();
+  const { user, isAuthenticated, logout, accessToken, _hasHydrated } = useAuthStore();
 
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const res = await fetch('/health', { signal: AbortSignal.timeout(3000) });
-        if (res.ok) {
-          const data = await res.json();
-          setBackendStatus(data.mock_mode ? 'mock' : 'online');
-        } else {
-          setBackendStatus('offline');
-        }
-      } catch {
-        setBackendStatus('offline');
+  const title = pageTitles[pathname] || 'Aether';
+
+  const handleLogout = async () => {
+    try {
+      if (accessToken) {
+        await logoutApi();
       }
-    };
-    checkHealth();
-    const interval = setInterval(checkHealth, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const title = pageTitles[pathname] || '민원 상담';
+    } catch {
+      // 서버 로그아웃 실패해도 클라이언트는 정리
+    } finally {
+      logout();
+      router.push('/login');
+    }
+  };
 
   return (
-    <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-4 sm:px-6 bg-zinc-950/50 backdrop-blur-sm sticky top-0 z-10">
-      {/* 모바일에서 햄버거 버튼 공간 확보 */}
-      <h2 className="text-lg font-bold text-white pl-10 lg:pl-0">{title}</h2>
+    <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-4 sm:px-6 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-40">
+      <div className="flex items-center gap-4">
+        {/* Mobile menu button */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+          aria-label="Toggle menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <h1 className="text-lg font-semibold text-white">{title}</h1>
+      </div>
 
       <div className="flex items-center gap-3">
-        {/* Backend status */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800">
-          {backendStatus === 'online' ? (
-            <>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
-              </span>
-              <span className="text-xs text-green-500">서버 연결</span>
-            </>
-          ) : backendStatus === 'mock' ? (
-            <>
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-              <span className="text-xs text-amber-500">데모 모드</span>
-            </>
-          ) : backendStatus === 'offline' ? (
-            <>
-              <WifiOff className="w-3.5 h-3.5 text-red-500" />
-              <span className="text-xs text-red-500">서버 미연결</span>
-            </>
-          ) : (
-            <>
-              <Activity className="w-3.5 h-3.5 text-zinc-500 animate-pulse" />
-              <span className="text-xs text-zinc-500">확인 중</span>
-            </>
-          )}
-        </div>
+        {!_hasHydrated ? (
+          /* hydration 전에는 빈 공간으로 표시하여 SSR/CSR 불일치 방지 */
+          <div className="w-24 h-8" />
+        ) : isAuthenticated ? (
+          <>
+            {/* Notifications */}
+            <button
+              className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors relative"
+              aria-label="알림"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+
+            {/* User menu */}
+            <div className="flex items-center gap-3 pl-3 border-l border-zinc-800">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-medium text-white">{user?.name}</p>
+                <p className="text-xs text-zinc-500">{user?.email}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-red-400 transition-colors"
+                title="로그아웃"
+                aria-label="로그아웃"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/login"
+              className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
+            >
+              로그인
+            </Link>
+            <Link
+              href="/signup"
+              className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              회원가입
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );

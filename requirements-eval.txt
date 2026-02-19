@@ -1,7 +1,0 @@
-# RAGAS 오프라인 평가 의존성
-# 사용법: pip install -r requirements-eval.txt
-ragas>=0.1.0
-datasets
-langchain
-pandas
-pyarrow

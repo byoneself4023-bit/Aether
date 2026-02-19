@@ -31,6 +31,13 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+.gradle/
+
+# Test
+.pytest_cache/
+htmlcov/
+.coverage
+reports/
 
 # Logs
 *.log
@@ -42,6 +49,10 @@ logs/
 # Next.js build
 .next/
 out/
+
+# Vector DB
+chroma_data/
+**/chroma/
 
 # Archives
 *.zip

@@ -1,47 +1,174 @@
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: claro-backend
-    ports:
-      - "8010:8010"
-    volumes:
-      - ${MODELS_PATH:-/Users/kuka/CIVILCOMPLAINT/models}:/root/CIVILCOMPLAINT/models:ro
-      - ${DATA_PATH:-/Users/kuka/CIVILCOMPLAINT/data}:/root/CIVILCOMPLAINT/data:ro
-      - ${RESULTS_PATH:-/Users/kuka/CIVILCOMPLAINT/results}:/root/CIVILCOMPLAINT/results:ro
-      - ./backend/data:/app/data
-    environment:
-      - PYTHONUNBUFFERED=1
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - DEVICE=${DEVICE:-cpu}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+  # ============================================
+  # Infrastructure Services
+  # ============================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: aether-postgres
     restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aether_auth}
+      POSTGRES_USER: ${POSTGRES_USER:-aether}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aether123}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/health')"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aether} -d ${POSTGRES_DB:-aether_auth}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aether-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: aether-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aether-network
+
+  # ============================================
+  # Backend Services
+  # ============================================
+
+  portfolio-service:
+    build:
+      context: ./portfolio-service
+      dockerfile: Dockerfile
+    container_name: aether-portfolio
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 10s
+    networks:
+      - aether-network
+
+  llm-service:
+    build:
+      context: ./llm-service
+      dockerfile: Dockerfile
+    container_name: aether-llm
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - GOOGLE_API_KEY=${GEMINI_API_KEY}
+      - PORTFOLIO_SERVICE_URL=http://portfolio-service:8001
+    volumes:
+      - llm_chroma_data:/app/data/chroma
+    depends_on:
+      portfolio-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - aether-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: aether-auth
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-aether_auth}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-aether}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-aether123}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256}
+      - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION:-1800000}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8003/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - aether-network
+
+  # ============================================
+  # Frontend Service
+  # ============================================
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        BACKEND_URL: http://backend:8010
-    container_name: claro-frontend
-    ports:
-      - "3010:3010"
-    environment:
-      - BACKEND_URL=http://backend:8010
-    depends_on:
-      backend:
-        condition: service_healthy
+    container_name: aether-frontend
     restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_AUTH_URL=http://localhost:8003
+      - NEXT_PUBLIC_PORTFOLIO_URL=http://localhost:8001
+      - NEXT_PUBLIC_LLM_URL=http://localhost:8002
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      portfolio-service:
+        condition: service_healthy
+      llm-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - aether-network
 
+# ============================================
+# Networks
+# ============================================
 networks:
-  default:
-    name: claro-network
+  aether-network:
+    driver: bridge
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  llm_chroma_data:
+    driver: local

@@ -2,60 +2,58 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  LayoutDashboard,
+  PieChart,
+  TrendingUp,
   MessageSquare,
-  BarChart3,
-  ClipboardList,
-  Bot,
   Settings,
-  Sparkles,
-  Menu,
   X,
+  Sparkles,
+  Home,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 const navItems = [
-  { id: '/', label: '상담', icon: MessageSquare },
-  { id: '/dashboard', label: '대시보드', icon: BarChart3 },
-  { id: '/history', label: '히스토리', icon: ClipboardList },
-  { id: '/models', label: '모델', icon: Bot },
+  { id: '/', label: '홈', icon: Home },
+  { id: '/dashboard', label: '대시보드', icon: LayoutDashboard },
+  { id: '/dashboard/optimize', label: '최적화', icon: PieChart },
+  { id: '/dashboard/backtest', label: '백테스트', icon: TrendingUp },
+  { id: '/dashboard/chat', label: 'AI 채팅', icon: MessageSquare },
 ];
 
 const footerItems = [
   { id: '/settings', label: '설정', icon: Settings },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // 라우트 변경 시 모바일 사이드바 닫기
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
-  // ESC 키로 닫기
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileOpen(false);
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  const handleNavigation = (path: string) => {
+    router.push(path);
+    onClose();
+  };
 
   const sidebarContent = (
     <>
       {/* Logo */}
       <div className="p-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-violet-500 rounded-xl flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">Claro</span>
+          <div>
+            <span className="text-xl font-bold tracking-tight text-white">Aether</span>
+            <p className="text-xs text-zinc-500">Portfolio Intelligence</p>
+          </div>
         </div>
-        {/* 모바일 닫기 버튼 */}
+        {/* Mobile close button */}
         <button
-          onClick={() => setMobileOpen(false)}
+          onClick={onClose}
           className="lg:hidden p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
@@ -69,17 +67,17 @@ export default function Sidebar() {
           return (
             <button
               key={item.id}
-              onClick={() => router.push(item.id)}
+              onClick={() => handleNavigation(item.id)}
               className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm ${
                 isActive
-                  ? 'bg-zinc-900 text-blue-500 font-bold'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+                  ? 'bg-blue-500/10 text-blue-400 font-medium'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
               }`}
             >
               {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-blue-500 rounded-r-full" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-500 rounded-r-full" />
               )}
-              <item.icon className={`w-5 h-5 transition-transform duration-200 ${isActive ? '' : 'group-hover:scale-110'}`} />
+              <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-400' : ''}`} />
               {item.label}
             </button>
           );
@@ -93,55 +91,48 @@ export default function Sidebar() {
           return (
             <button
               key={item.id}
-              onClick={() => router.push(item.id)}
+              onClick={() => handleNavigation(item.id)}
               className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm ${
                 isActive
-                  ? 'bg-zinc-900 text-blue-500 font-bold'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+                  ? 'bg-blue-500/10 text-blue-400 font-medium'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
               }`}
             >
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-blue-500 rounded-r-full" />
-              )}
               <item.icon className="w-5 h-5" />
               {item.label}
             </button>
           );
         })}
+
+        {/* Version */}
+        <div className="px-4 py-2 text-xs text-zinc-600">
+          v0.1.0
+        </div>
       </div>
     </>
   );
 
   return (
     <>
-      {/* 모바일 햄버거 버튼 */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-        aria-label="메뉴 열기"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
-
-      {/* 모바일 오버레이 */}
-      {mobileOpen && (
+      {/* Mobile overlay */}
+      {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
-          onClick={() => setMobileOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          onClick={onClose}
         />
       )}
 
-      {/* 모바일 사이드바 (슬라이드) */}
+      {/* Mobile sidebar */}
       <aside
-        className={`lg:hidden fixed inset-y-0 left-0 z-40 w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col transform transition-transform duration-300 ease-in-out ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {sidebarContent}
       </aside>
 
-      {/* 데스크톱 사이드바 */}
-      <aside className="hidden lg:flex w-64 bg-zinc-950 border-r border-zinc-800 flex-col z-20 flex-shrink-0">
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-64 bg-zinc-950 border-r border-zinc-800 flex-col flex-shrink-0">
         {sidebarContent}
       </aside>
     </>
