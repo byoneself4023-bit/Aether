@@ -39,7 +39,7 @@
   ├── GEMINI_API_KEY → GOOGLE_API_KEY (llm-service)
   ├── POSTGRES_USER/PASSWORD → SPRING_DATASOURCE_* (auth-service)
   ├── JWT_SECRET → jwt.secret (auth-service)
-  └── CORS_ALLOWED_ORIGINS → cors.allowed-origins (auth-service)
+  └── CORS_ORIGINS → cors.allowed-origins (auth-service)
 ```
 
 ---

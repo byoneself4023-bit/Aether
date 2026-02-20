@@ -429,18 +429,25 @@ def run_backtest_experiment(
                 }
                 _log_json_artifact(input_params, "input_params.json")
 
-                # 2. 최종 비중
-                final_weights = {
-                    ticker: round(float(w), 6)
-                    for ticker, w in result.final_weights.items()
-                }
+                # 2. 최종 비중 (weights_history의 마지막 행 사용)
+                final_weights = {}
+                if result.weights_history is not None and len(result.weights_history) > 0:
+                    last_row = result.weights_history.iloc[-1]
+                    final_weights = {
+                        ticker: round(float(last_row[ticker]), 6)
+                        for ticker in tickers
+                        if ticker in last_row.index
+                    }
                 _log_json_artifact(final_weights, "final_weights.json")
 
-                # 3. 리밸런싱 히스토리
+                # 3. 리밸런싱 히스토리 (weights는 numpy array → zip으로 변환)
                 rebalance_history = [
                     {
                         "date": str(record.date),
-                        "weights": {k: round(float(v), 6) for k, v in record.weights.items()},
+                        "weights": {
+                            ticker: round(float(w), 6)
+                            for ticker, w in zip(tickers, record.weights)
+                        },
                         "turnover": round(float(record.turnover), 6)
                     }
                     for record in result.rebalance_history

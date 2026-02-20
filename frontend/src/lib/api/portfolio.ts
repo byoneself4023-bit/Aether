@@ -3,7 +3,7 @@ import { createApiClient } from './client';
 import type {
   OptimizationRequest,
   OptimizationResult,
-  RiskMetrics,
+  RiskResponse,
   BacktestRequest,
   BacktestResult,
 } from '@/types/portfolio';
@@ -20,14 +20,16 @@ export async function optimizePortfolio(
 export async function getRiskAnalysis(
   tickers: string[],
   weights: Record<string, number>,
-  startDate: string,
-  endDate: string
-): Promise<RiskMetrics> {
-  const response = await portfolioApi.post<RiskMetrics>('/api/risk', {
+  options?: {
+    confidence?: 0.95 | 0.99;
+    period?: '1y' | '3y' | '5y';
+    n_simulations?: number;
+  }
+): Promise<RiskResponse> {
+  const response = await portfolioApi.post<RiskResponse>('/api/risk', {
     tickers,
     weights,
-    start_date: startDate,
-    end_date: endDate,
+    ...options,
   });
   return response.data;
 }

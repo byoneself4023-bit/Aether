@@ -1,8 +1,6 @@
 """LLM 서비스 - Provider 추상화를 통한 LLM 호출"""
 
-import json
 import logging
-import re
 from typing import Any
 
 from app.config import get_settings
@@ -21,7 +19,6 @@ from app.services.llm_provider import (
     get_llm_provider,
     LLMError,
     JSONParseError,
-    _extract_json,
 )
 
 logger = logging.getLogger(__name__)

@@ -202,7 +202,7 @@ def regularize_covariance(
     # 정규화 결과 검증
     new_validation = validate_covariance_matrix(cov_reg)
     new_validation.was_regularized = True
-    new_validation.regularization_amount = ridge if 'ridge' in dir() else 0
+    new_validation.regularization_amount = ridge
 
     logger.info(
         "covariance_regularized",

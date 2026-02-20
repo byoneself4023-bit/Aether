@@ -29,6 +29,8 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: !!user,
         }),
 
+      // TODO: Production에서는 HttpOnly 쿠키로 이동 권장 (XSS 방어)
+      // 현재는 포트폴리오 프로젝트 범위상 localStorage 사용
       setTokens: (accessToken, refreshToken) => {
         if (typeof window !== 'undefined') {
           localStorage.setItem('aether-refresh-token', refreshToken);

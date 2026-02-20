@@ -6,7 +6,6 @@ import {
   PieChart,
   TrendingUp,
   MessageSquare,
-  Settings,
   X,
   Sparkles,
   Home,
@@ -20,9 +19,7 @@ const navItems = [
   { id: '/dashboard/chat', label: 'AI 채팅', icon: MessageSquare },
 ];
 
-const footerItems = [
-  { id: '/settings', label: '설정', icon: Settings },
-];
+const footerItems: typeof navItems = [];
 
 interface SidebarProps {
   isOpen: boolean;

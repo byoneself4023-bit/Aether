@@ -2,7 +2,7 @@
 
 Markowitz 최적화 + LLM 해석 + 실시간 리스크 분석을 제공하는 풀스택 핀테크 플랫폼
 
-> 코드 리뷰 64건 수정 | 테스트 282개 | 통합 테스트 10/10 | 장애 시뮬레이션 14건 | ADR 8개
+> 코드 리뷰 64건 수정 | 테스트 511개 | 통합 테스트 10/10 | 장애 시뮬레이션 14건 | ADR 8개
 
 ---
 
@@ -19,7 +19,7 @@ Markowitz 최적화 + LLM 해석 + 실시간 리스크 분석을 제공하는 �
    ┌──────────────┐  ┌─────────────────┐  ┌──────────────┐
    │ auth :8003   │  │portfolio :8001  │  │  llm :8002   │
    │ Spring Boot  │  │    FastAPI      │  │   FastAPI    │
-   │   3.2.12     │  │                 │  │  LangChain   │
+   │   3.2.12     │  │                 │  │   Gemini     │
    └──────┬───────┘  └────────┬────────┘  └──────┬───────┘
           │                   │                   │
     ┌─────┴──────┐            │             ┌─────┴──────┐
@@ -50,8 +50,8 @@ Docker Compose로 6개 컨테이너 통합 실행: `docker compose up -d`
 | 캐시/세션 | Redis | 7-alpine |
 | 최적화 | scipy.optimize (SLSQP) + Ledoit-Wolf Shrinkage | scipy 1.11.4 |
 | 리스크 | Parametric VaR + Monte Carlo + CVaR | numpy 1.26.2 |
-| LLM | Google Gemini 2.5 Flash + LangChain | langchain 0.1.0 |
-| RAG | ChromaDB + gemini-embedding-001 | chromadb 1.0.0 |
+| LLM | Google Gemini 2.5 Flash | google-generativeai 0.3.2 |
+| RAG | ChromaDB + gemini-embedding-001 | chromadb 0.4.x |
 | 컨테이너 | Docker Compose | v2 |
 
 ---
@@ -100,7 +100,7 @@ Docker Compose로 6개 컨테이너 통합 실행: `docker compose up -d`
 
 ```bash
 cp .env.example .env
-# .env에 GOOGLE_API_KEY 등 실제 값 입력
+# .env에 GEMINI_API_KEY 등 실제 값 입력
 docker compose up -d
 ```
 
@@ -149,12 +149,13 @@ Aether/
 | frontend | 4 | 7 | 10 | 21 |
 | **합계** | **18** | **23** | **23** | **64** |
 
-### 테스트: 282개
+### 테스트: 511개
 
 | 서비스 | 테스트 수 | 주요 커버리지 |
 |--------|:---------:|-------------|
 | auth-service | 70 | 인증, JWT, Rate Limiting, Health Check, 장애 시뮬레이션 |
-| portfolio-service | 212 | 최적화, 리스크, 백테스트, 드리프트 탐지, 수치 안정성, 장애 시뮬레이션 |
+| portfolio-service | 209 | 최적화, 리스크, 백테스트, 드리프트 탐지, 수치 안정성, 장애 시뮬레이션 |
+| llm-service | 232 | LLM 호출, RAG, 프롬프트 인젝션 방어, 캐시, Rate Limiting, 토큰 추적 |
 
 ### 통합 테스트: 10/10 시나리오 통과
 
@@ -209,7 +210,7 @@ Redis/DB/외부 API 장애 시 graceful degradation 테스트
 | [docs/Differentiation/ADR/](docs/Differentiation/ADR/) | 기술 선택 근거 (8개) |
 | [docs/Differentiation/ResilienceTest.md](docs/Differentiation/ResilienceTest.md) | 장애 시뮬레이션 (14개) |
 | [docs/Guide/EasyExplanation.md](docs/Guide/EasyExplanation.md) | 기술 용어 쉬운 설명 |
-| [docs/Design/PORTFOLIO_SERVICE/](docs/Design/PORTFOLIO_SERVICE/) | 설계 문서 |
+| [docs/Design/Portfolio_Service/](docs/Design/Portfolio_Service/) | 설계 문서 |
 
 ---
 

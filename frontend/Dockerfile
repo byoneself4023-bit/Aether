@@ -3,6 +3,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build-time arguments for NEXT_PUBLIC_ env vars (baked into JS bundle)
+ARG NEXT_PUBLIC_AUTH_URL=http://localhost:8003
+ARG NEXT_PUBLIC_PORTFOLIO_URL=http://localhost:8001
+ARG NEXT_PUBLIC_LLM_URL=http://localhost:8002
+
+ENV NEXT_PUBLIC_AUTH_URL=$NEXT_PUBLIC_AUTH_URL
+ENV NEXT_PUBLIC_PORTFOLIO_URL=$NEXT_PUBLIC_PORTFOLIO_URL
+ENV NEXT_PUBLIC_LLM_URL=$NEXT_PUBLIC_LLM_URL
+
 # Copy package files
 COPY package*.json ./
 
@@ -12,7 +21,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application (NEXT_PUBLIC_ vars are embedded at this stage)
 RUN npm run build
 
 # Production stage

@@ -8,15 +8,15 @@ services:
     container_name: aether-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-aether_auth}
-      POSTGRES_USER: ${POSTGRES_USER:-aether}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aether123}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aether} -d ${POSTGRES_DB:-aether_auth}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -54,6 +54,7 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
       interval: 30s
@@ -76,6 +77,7 @@ services:
       - PYTHONUNBUFFERED=1
       - GOOGLE_API_KEY=${GEMINI_API_KEY}
       - PORTFOLIO_SERVICE_URL=http://portfolio-service:8001
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
     volumes:
       - llm_chroma_data:/app/data/chroma
     depends_on:
@@ -100,14 +102,15 @@ services:
       - "8003:8003"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-aether_auth}
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-aether}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-aether123}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      - JWT_SECRET=${JWT_SECRET:-aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256}
+      - JWT_SECRET=${JWT_SECRET}
       - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION:-1800000}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
     depends_on:
       postgres:
         condition: service_healthy
@@ -130,15 +133,16 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-http://localhost:8003}
+        - NEXT_PUBLIC_PORTFOLIO_URL=${NEXT_PUBLIC_PORTFOLIO_URL:-http://localhost:8001}
+        - NEXT_PUBLIC_LLM_URL=${NEXT_PUBLIC_LLM_URL:-http://localhost:8002}
     container_name: aether-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_AUTH_URL=http://localhost:8003
-      - NEXT_PUBLIC_PORTFOLIO_URL=http://localhost:8001
-      - NEXT_PUBLIC_LLM_URL=http://localhost:8002
     depends_on:
       auth-service:
         condition: service_healthy

@@ -6,7 +6,7 @@
 | ----------- | --------------------- | ------------------------------------------------------- |
 | scipy       | cvxpy, PyPortfolioOpt | 직접 구현으로 수학 이해도 증명, 외부 의존성 최소화      |
 | Chroma      | FAISS, Pinecone       | 로컬 실행 가능, 무료, 임베딩 저장/검색 통합             |
-| LangChain   | 직접 구현             | RAG 패턴 빠르게 적용, 프롬프트 체이닝 편의성            |
+| 직접 구현 (google-generativeai) | LangChain | 의존성 최소화, 디버깅 용이, 프레임워크 추상화 불필요 |
 | FastAPI     | Flask, Django         | 비동기 기본 지원, 타입 힌트 자동 문서화                 |
 | JWT + Redis | 세션 기반             | stateless 마이크로서비스, 토큰 블랙리스트로 즉시 무효화 |
 

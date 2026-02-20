@@ -13,6 +13,7 @@ spring:
 
   jpa:
     hibernate:
+      # WARNING: 'update'는 개발용. 프로덕션에서는 'validate' 사용 (docker 프로필 참조)
       ddl-auto: update
     show-sql: true
     properties:
@@ -44,9 +45,9 @@ management:
       show-details: when_authorized
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
 
 logging:
   level:
-    com.aether: DEBUG
-    org.springframework.security: DEBUG
+    com.aether: INFO
+    org.springframework.security: WARN

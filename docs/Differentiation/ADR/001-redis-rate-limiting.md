@@ -67,7 +67,7 @@ if (currentCount > MAX_REQUESTS_PER_MINUTE) {
 - 테스트: 6개 테스트 케이스 (제한 이내, 초과 429, IP별 독립, Retry-After, 다른 경로 미적용, 리셋)
 
 **트레이드오프**:
-- Redis 장애 시 rate limiting 비활성화 (현재 fail-open 정책 — 가용성 우선)
+- Redis 장애 시 예외 전파로 요청 차단 (현재 fail-close 정책 — 보안 우선, 프로덕션에서는 fail-open + 모니터링 권장)
 - `INCR` + `EXPIRE`가 별도 명령이므로 INCR 후 서버 크래시 시 TTL 미설정 가능 (Lua 스크립트로 개선 가능)
 - Fixed Window 방식이라 윈도우 경계에서 burst 가능 (Sliding Window Log로 개선 가능)
 

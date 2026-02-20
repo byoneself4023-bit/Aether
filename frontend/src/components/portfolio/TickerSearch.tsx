@@ -128,7 +128,7 @@ export default function TickerSearch({
                   onClick={() => selectTicker(item.symbol)}
                   disabled={isSelected}
                   className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between transition-colors ${
-                    idx === highlightIdx ? 'bg-zinc-700' : 'hover:bg-zinc-750'
+                    idx === highlightIdx ? 'bg-zinc-700' : 'hover:bg-zinc-800'
                   } ${isSelected ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
                 >
                   <span>

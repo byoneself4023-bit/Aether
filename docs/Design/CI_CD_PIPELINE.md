@@ -15,7 +15,7 @@ Jenkins 기반 CI/CD 파이프라인. GitHub webhook으로 `main` 브랜치 push
                  │  │portfolio-service│  pytest (209)      │            │
                  │  └─────────────────┘                   │            v
                  │  ┌─────────────────┐                   │     ┌──────────────┐
-                 │  │  llm-service    │  pytest (232)      │     │ Docker Build │
+                 │  │  llm-service    │  pytest (232)       │     │ Docker Build │
                  │  └─────────────────┘                   │     └──────┬───────┘
                  │  ┌─────────────────┐                   │            │
                  │  │  auth-service   │  gradlew test      │            v
@@ -43,9 +43,9 @@ Git SCM에서 소스 체크아웃. 브랜치명과 커밋 해시를 로그에 �
 
 | 서비스 | 런타임 | 테스트 명령 | 테스트 수 |
 |--------|--------|------------|----------|
-| portfolio-service | Python 3.13 | `pytest tests/ -x -q` | 209 |
-| llm-service | Python 3.13 | `pytest tests/ -x -q` | 232 |
-| auth-service | Java 21 (Spring Boot) | `./gradlew test` | 8+ |
+| portfolio-service | Python 3.11 | `pytest tests/ -x -q` | 209 |
+| llm-service | Python 3.11 | `pytest tests/ -x -q` | 232 |
+| auth-service | Java 21 (Spring Boot) | `./gradlew test` | 70 |
 
 각 Python 서비스는 격리된 venv를 생성하여 의존성 충돌을 방지한다.
 테스트 결과는 JUnit XML로 출력되어 Jenkins UI에서 확인 가능하다.

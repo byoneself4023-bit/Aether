@@ -1,7 +1,6 @@
 """RAG 파이프라인 - ChromaDB 기반 금융 지식 검색"""
 
 import logging
-import os
 from pathlib import Path
 from typing import Any
 

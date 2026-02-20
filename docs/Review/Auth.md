@@ -7,7 +7,7 @@
 | 서비스 | auth-service (Java/Spring Boot 3.2.12) |
 | 리뷰 관점 | 보안 전문가, 시니어 백엔드, DevOps/운영 (FAANG 시니어 기준) |
 | 총 이슈 | 19개 (Critical 6 + Major 7 + Minor 6) |
-| 테스트 변화 | 24 → 62개 (+38개) |
+| 테스트 변화 | 24 → 70개 (+46개) |
 | 전부 해결 | ✅ |
 
 ## 종합 평가 (수정 후)
@@ -152,7 +152,7 @@
 **수정 내용**:
 - `addCorsMappings()` 제거, `CorsConfigurationSource` Bean만 유지
 - `SecurityConfig`에 `.cors(cors -> cors.configurationSource(...))` 명시
-- origin을 `application.yml`의 `${CORS_ALLOWED_ORIGINS}` 환경변수로 외부화
+- origin을 `application.yml`의 `${CORS_ORIGINS}` 환경변수로 외부화
 
 ---
 
@@ -207,7 +207,7 @@
 - 만료된 access token 검증: +1
 - MockMvc + `@AuthenticationPrincipal` 호환성 해결
 
-**테스트**: +12개 (총 38→56)
+**테스트**: +12개 (이후 장애 시뮬레이션 등 추가 포함, 최종 70개)
 
 ---
 

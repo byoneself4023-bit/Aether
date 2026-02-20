@@ -9,10 +9,9 @@ export interface ChatMessage {
 
 export interface ChatRequest {
   message: string;
-  context?: {
-    portfolio?: Record<string, number>;
-    risk_metrics?: Record<string, number>;
-  };
+  tickers?: string[];
+  strategy?: 'min_variance' | 'max_sharpe';
+  include_backtest?: boolean;
 }
 
 export interface ChatSource {
@@ -27,9 +26,8 @@ export interface ChatResponse {
   portfolio_data?: Record<string, unknown>;
 }
 
-export interface RAGDocument {
-  id: string;
-  title: string;
-  content: string;
-  metadata?: Record<string, string>;
+export interface RAGQueryResponse {
+  answer: string;
+  sources: ChatSource[];
+  confidence: number;
 }

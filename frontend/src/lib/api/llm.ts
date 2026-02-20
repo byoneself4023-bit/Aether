@@ -1,6 +1,6 @@
 import { API_URLS } from '@/lib/utils/constants';
 import { createApiClient } from './client';
-import type { ChatRequest, ChatResponse, RAGDocument } from '@/types/chat';
+import type { ChatRequest, ChatResponse, RAGQueryResponse } from '@/types/chat';
 
 const llmApi = createApiClient(API_URLS.LLM);
 
@@ -20,12 +20,12 @@ export async function analyzePortfolio(
   return response.data.analysis;
 }
 
-export async function queryRAG(query: string, topK = 5): Promise<RAGDocument[]> {
-  const response = await llmApi.post<{ documents: RAGDocument[] }>('/api/rag/query', {
-    query,
-    top_k: topK,
+export async function queryRAG(question: string, k = 3): Promise<RAGQueryResponse> {
+  const response = await llmApi.post<RAGQueryResponse>('/api/rag/query', {
+    question,
+    k,
   });
-  return response.data.documents;
+  return response.data;
 }
 
 export async function checkHealth(): Promise<{ status: string }> {

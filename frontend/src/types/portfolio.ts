@@ -40,14 +40,30 @@ export interface OptimizationResult {
 // Risk
 // ============================================================
 
-export interface RiskMetrics {
-  var_95: number;
-  var_99: number;
+export interface VaRResult {
+  value: number;
+  confidence: number;
+  holding_days: number;
+  method: string;
+}
+
+export interface RiskSummary {
+  volatility: number;
+  expected_return: number;
+  var_95_parametric: number;
+  var_99_parametric: number;
+  var_95_montecarlo: number;
+  var_99_montecarlo: number;
   cvar_95: number;
   cvar_99: number;
-  max_drawdown: number;
-  beta?: number;
-  correlation_matrix?: Record<string, Record<string, number>>;
+  max_loss_1d: number;
+}
+
+export interface RiskResponse {
+  parametric_var: VaRResult;
+  monte_carlo_var: VaRResult;
+  cvar: number;
+  risk_summary: RiskSummary;
 }
 
 // ============================================================

@@ -96,22 +96,20 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh """
-                    docker compose build \
-                        --build-arg BUILD_NUMBER=${env.BUILD_NUMBER} \
-                        --build-arg GIT_COMMIT=${env.GIT_COMMIT}
+                    docker compose build
                 """
 
-                // 빌드된 이미지에 태그 부여
+                // 빌드된 이미지에 태그 부여 (compose 서비스명 기준)
                 sh """
-                    docker tag aether-portfolio   ${DOCKER_REGISTRY}/aether-portfolio:${IMAGE_TAG}
-                    docker tag aether-llm         ${DOCKER_REGISTRY}/aether-llm:${IMAGE_TAG}
-                    docker tag aether-auth        ${DOCKER_REGISTRY}/aether-auth:${IMAGE_TAG}
-                    docker tag aether-frontend    ${DOCKER_REGISTRY}/aether-frontend:${IMAGE_TAG}
+                    docker tag aether-portfolio-service ${DOCKER_REGISTRY}/aether-portfolio:${IMAGE_TAG}
+                    docker tag aether-llm-service       ${DOCKER_REGISTRY}/aether-llm:${IMAGE_TAG}
+                    docker tag aether-auth-service      ${DOCKER_REGISTRY}/aether-auth:${IMAGE_TAG}
+                    docker tag aether-frontend          ${DOCKER_REGISTRY}/aether-frontend:${IMAGE_TAG}
 
-                    docker tag aether-portfolio   ${DOCKER_REGISTRY}/aether-portfolio:latest
-                    docker tag aether-llm         ${DOCKER_REGISTRY}/aether-llm:latest
-                    docker tag aether-auth        ${DOCKER_REGISTRY}/aether-auth:latest
-                    docker tag aether-frontend    ${DOCKER_REGISTRY}/aether-frontend:latest
+                    docker tag aether-portfolio-service ${DOCKER_REGISTRY}/aether-portfolio:latest
+                    docker tag aether-llm-service       ${DOCKER_REGISTRY}/aether-llm:latest
+                    docker tag aether-auth-service      ${DOCKER_REGISTRY}/aether-auth:latest
+                    docker tag aether-frontend          ${DOCKER_REGISTRY}/aether-frontend:latest
                 """
             }
         }
@@ -203,22 +201,16 @@ DEPLOY_SCRIPT
 
         success {
             echo "Pipeline succeeded: Build #${env.BUILD_NUMBER}"
-            // TODO: Slack 알림
-            // slackSend(
-            //     channel: '#aether-deploy',
-            //     color: 'good',
-            //     message: "Aether 배포 성공: Build #${env.BUILD_NUMBER} (${env.GIT_BRANCH})"
-            // )
+            // Slack webhook URL 설정 후 활성화
+            // slackSend(channel: '#aether-deploy', color: 'good',
+            //     message: "Aether 배포 성공: Build #${env.BUILD_NUMBER} (${env.GIT_BRANCH})")
         }
 
         failure {
             echo "Pipeline failed: Build #${env.BUILD_NUMBER}"
-            // TODO: Slack 알림
-            // slackSend(
-            //     channel: '#aether-deploy',
-            //     color: 'danger',
-            //     message: "Aether 빌드 실패: Build #${env.BUILD_NUMBER} (${env.GIT_BRANCH})\n${env.BUILD_URL}"
-            // )
+            // Slack webhook URL 설정 후 활성화
+            // slackSend(channel: '#aether-deploy', color: 'danger',
+            //     message: "Aether 빌드 실패: Build #${env.BUILD_NUMBER} (${env.GIT_BRANCH})\n${env.BUILD_URL}")
         }
     }
 }
