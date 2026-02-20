@@ -204,13 +204,10 @@ Redis/DB/외부 API 장애 시 graceful degradation 테스트
 | [docs/Review/Auth.md](docs/Review/Auth.md) | auth-service 코드 리뷰 (19건) |
 | [docs/Review/LLM.md](docs/Review/LLM.md) | llm-service 코드 리뷰 (13건) |
 | [docs/Review/Frontend.md](docs/Review/Frontend.md) | frontend 코드 리뷰 (21건) |
-| [docs/Interview/](docs/Interview/) | 서비스별 면접 대비 (4개) |
 | [docs/Integration/DockerCompose.md](docs/Integration/DockerCompose.md) | 통합 테스트 (10/10) |
 | [docs/Differentiation/BeforeAfter.md](docs/Differentiation/BeforeAfter.md) | Before→After 코드 비교 (6개) |
 | [docs/Differentiation/ADR/](docs/Differentiation/ADR/) | 기술 선택 근거 (8개) |
 | [docs/Differentiation/ResilienceTest.md](docs/Differentiation/ResilienceTest.md) | 장애 시뮬레이션 (14개) |
-| [docs/Guide/EasyExplanation.md](docs/Guide/EasyExplanation.md) | 기술 용어 쉬운 설명 |
-| [docs/Design/Portfolio_Service/](docs/Design/Portfolio_Service/) | 설계 문서 |
 
 ---
 
