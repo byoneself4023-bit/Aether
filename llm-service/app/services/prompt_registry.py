@@ -135,6 +135,8 @@ def _register_default_prompts(registry: PromptRegistry) -> None:
         RISK_EXPLANATION_SCHEMA,
         BACKTEST_SUMMARY_SCHEMA,
         RECOMMENDATION_SCHEMA,
+        RAG_SYSTEM_PROMPT,
+        RAG_USER_TEMPLATE,
     )
 
     registry.register(
@@ -170,4 +172,18 @@ def _register_default_prompts(registry: PromptRegistry) -> None:
         version="1.0",
         template=RECOMMENDATION_SCHEMA,
         metadata={"description": "투자 추천 JSON 스키마"},
+    )
+
+    registry.register(
+        name="rag_system",
+        version="1.0",
+        template=RAG_SYSTEM_PROMPT,
+        metadata={"description": "RAG 시스템 프롬프트 - 금융 지식 답변"},
+    )
+
+    registry.register(
+        name="rag_user",
+        version="1.0",
+        template=RAG_USER_TEMPLATE,
+        metadata={"description": "RAG 유저 프롬프트 - context/question 치환"},
     )
