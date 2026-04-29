@@ -1,0 +1,6 @@
+node_modules/
+**/.venv/
+frontend/.next/
+frontend/out/
+docs/agent-capability-audit/
+docs/resume-analysis/

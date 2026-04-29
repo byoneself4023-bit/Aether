@@ -64,22 +64,32 @@ schemas/  ────────────────  middleware/ ──�
 ```bash
 # llm-service
 cd llm-service && python -m venv .venv && . .venv/bin/activate
-pip install -q -r requirements.txt
-python -m pytest tests/ -x -q --junitxml=../reports/llm-test-results.xml
+pip install -q -r requirements-dev.txt   # H-7 후: ruff/black/mypy/pytest-cov 포함
+ruff check . || true                       # 1차 비차단 (H-7c에서 차단 전환)
+black --check . || true                    # 1차 비차단
+mypy app/ --ignore-missing-imports || true # 1차 비차단
+pytest tests/ -q --cov=app --cov-fail-under=81  # 차단 (측정 86% - 5%)
 
-# portfolio-service (동일 패턴)
-cd portfolio-service && python -m pytest tests/ -x -q
+# portfolio-service (동일 패턴, 단 cov-fail-under=0 — H-7d collection 오류 정리 후 차단 전환)
+cd portfolio-service && pytest tests/ -q --cov=app --cov-fail-under=0
 
-# auth-service (Spring Boot)
+# auth-service (Spring Boot — Java 게이트는 H-7b 별도 카드)
 cd auth-service && ./gradlew test --no-daemon -Dspring.profiles.active=test
 
 # frontend
-cd frontend && npm ci --prefer-offline && npm run build
+cd frontend && npm ci --prefer-offline
+npx tsc --noEmit             # 차단
+npx eslint src/ || true      # 1차 비차단
+npx vitest run               # 5건 차단 (Dashboard/Chat/Backtest/Optimize/Header)
+npm run build                # 차단
+
+# 문서 (루트에서)
+npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 강제)
 ```
 
 - **테스트 합산**: 519건 (llm 237 + portfolio 212 + auth 70). Phase 1 audit는 514건 기록(232/212/70) — H-4(`e9acdf8`) 후 prompt registry 테스트 5건 증가. (`docs/agent-capability-audit/05_evaluation_testing.md:§1` 표).
-- **린트/타입 (H-7 도입 예정)**: `ruff check .` + `black --check .` + `mypy app/` — 현재 미적용. 도입 시 PR 게이트 차단 조건이 됨.
-- **CI 파이프라인**: `Jenkinsfile:35-77` (백엔드 3종 병렬), `82-91` (frontend), `96-115` (docker build), `120-142` (push, main 한정), `147-169` (SSH 배포 + 4개 헬스체크).
+- **린트/타입 (H-7 도입됨)**: ruff + black + mypy + pytest-cov 백엔드 4종 + tsc + eslint + vitest 프론트 3종 + markdownlint = 8종. 1차 도입은 측정값 -5% 임계 + lint/type 비차단 (CLAUDE.md §2 표).
+- **CI 파이프라인**: `Jenkinsfile:35-90` (백엔드 3종 병렬, llm/portfolio에 lint/type/cov 추가), `94-104` (frontend tsc/eslint/vitest/build), `109-115` (Lint Markdown 신규), `120-138` (docker build), `144-165` (push, main 한정), `171-193` (SSH 배포 + 4개 헬스체크).
 
 ---
 

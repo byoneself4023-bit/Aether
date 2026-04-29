@@ -14,18 +14,26 @@
 
 ---
 
-## §2. PR 게이트 (H-7 도입 예정)
+## §2. PR 게이트 (H-7 도입됨)
 
-PR은 다음을 모두 통과해야 머지 가능:
+PR은 다음을 모두 통과해야 머지 가능. 1차 도입은 **기존 코드를 깨지 않는다** 원칙으로 일부 도구는 비차단(`|| true`) — 점진 강화는 H-7c/d/L-3 후속 카드.
 
-- `pytest tests/ -x -q` — 변경 대상 서비스 테스트 통과 (현재 519건, AGENTS.md §7).
-- `ruff check .` — 린트 0 violation. (H-7 도입 후 적용.)
-- `black --check .` — 포맷 차이 0. (H-7 도입 후.)
-- `mypy app/` — 타입 에러 0. (H-7 도입 후.)
-- `npm run build` — 프론트 변경 시 빌드 성공 (`Jenkinsfile:82-91`).
-- AGENTS.md 갱신 체크박스 — 카드가 §7 지배 숫자나 §1-§6 사실을 변경했다면 본 PR에 갱신 포함.
+| 도구 | 차단 여부 | 임계값 / 비고 |
+|---|---|---|
+| llm-service `pytest --cov=app` | **차단** | `--cov-fail-under=81` (측정 86% - 5%) |
+| portfolio-service `pytest --cov=app` | 비차단 | `--cov-fail-under=0` — H-7d collection 오류 정리 후 차단 전환 |
+| `ruff check .` | 비차단 | llm 62건 / portfolio 81건 — H-7c에서 정리 |
+| `black --check .` | 비차단 | llm 27 / portfolio 31 reformat 필요 — H-7c에서 일괄 적용 |
+| `mypy app/` | 비차단 | llm 12 / portfolio 11 — `--ignore-missing-imports`. L-3에서 strict 전환 |
+| auth-service Gradle | **차단** | 기존 `gradle test` 유지. Java lint는 H-7b 별도 카드 |
+| frontend `tsc --noEmit` | **차단** | 0 errors 검증 완료 |
+| frontend `eslint src/` | 비차단 | `eslint-config-next` 권장 룰만 |
+| frontend `vitest run` | **차단** | 5건 (Dashboard/Chat/Backtest/Optimize/Header) |
+| frontend `npm run build` | **차단** | Jenkins 기존 단계 유지 |
+| `markdownlint` | **차단** | MD040 강제 (`.markdownlint.json`). MD013/MD060 비활성화 |
+| AGENTS.md 갱신 | 자체 검증 | §7 지배 숫자나 §1-§6 사실 변경 시 같은 PR에 갱신 |
 
-H-7 도입 전까지는 pytest + npm build만 강제. 신규 코드는 ruff/black/mypy 위반을 만들지 않도록 작성한다.
+신규 코드는 ruff/black/mypy 위반을 만들지 않도록 작성한다. 위반이 있는 기존 코드를 만지면 fix 또는 별도 카드로 분리.
 
 ---
 
