@@ -1,0 +1,137 @@
+# AGENTS.md
+
+> Aether 모노레포 컨텍스트 단일 페이지. Claude Code/AI 에이전트가 작업 시작 시 본 문서를 컨텍스트로 참조한다.
+> 갱신 정책 — 코드 변경 시 영향 받는 §를 같은 PR에 동시 수정 (CHANGELOG처럼 운영, H-7 PR 게이트 체크박스로 강제 예정).
+
+---
+
+## §1. 호출 체인 (서비스 간 통합 단방향)
+
+```text
+frontend ──HTTP──┬──> auth-service     (JWT 발급/검증)
+                 ├──> portfolio-service (수치 계산)
+                 └──> llm-service ──HTTP──> portfolio-service
+                                                  │
+                                                  └─> ChromaDB (in-process volume)
+                                                  └─> Gemini API (외부 SaaS)
+```
+
+- **요점**: `llm-service`는 `auth-service`와 **직접 통합되지 않는다**. 인증은 frontend가 auth-service로부터 JWT를 받아 portfolio/llm 호출 시 헤더에 동봉하는 방식. (`docs/agent-capability-audit/01_architecture.md:§1` 라인 8)
+- **LLM → Portfolio**: `llm-service/app/services/portfolio_client.py:33-39` — `httpx.AsyncClient(base_url=settings.portfolio_service_url, timeout=httpx.Timeout(60.0))`.
+- **Frontend → 3 백엔드**: `frontend/src/lib/utils/constants.ts:2-6` — `API_URLS = { AUTH: 8003, PORTFOLIO: 8001, LLM: 8002 }`.
+- **비-REST 통신 미사용**: gRPC/Kafka/Redis Streams 분석 범위 0건 (01:§2). 모든 서비스 간 호출은 동기 HTTP/JSON.
+
+---
+
+## §2. 토폴로지 (4 서비스 + 2 인프라)
+
+| 컴포넌트 | 포트 | 스택 | 책임 |
+|---|---|---|---|
+| frontend | 3000 | Next.js 15 / React 19 / Axios | UI, JWT 보관, 3개 백엔드 호출 |
+| auth-service | 8003 | Spring Boot / Java 17 | 인증, JWT 발급/검증, 리프레시 |
+| portfolio-service | 8001 | FastAPI / Python 3.11 | 최적화·리스크·백테스트 수치 계산 |
+| llm-service | 8002 | FastAPI / Python 3.11 | RAG, 도메인 분석(LLM 호출) |
+| postgres | 5433→5432 | postgres:16-alpine | users 테이블 (auth만 사용) |
+| redis | 6380→6379 | redis:7-alpine | refresh token, blacklist (auth만 사용) |
+
+- 근거: `docker-compose.yml:6-160` (서비스/인프라 정의), `docker-compose.yml:14-15, 30-31, 52-53, 73-74, 101-102, 142-143` (포트 매핑 6행).
+- 단일 bridge 네트워크 `aether-network`. 서비스 디스커버리는 docker-compose hostname (예: `portfolio-service:8001`).
+
+---
+
+## §3. 레이어 경계 (llm-service)
+
+```text
+routers/        ──>  services/        ──>  외부 (Gemini / portfolio-service / ChromaDB)
+                       │
+                       ├── prompts.py / prompt_registry.py  (프롬프트 자산)
+                       ├── llm.py / llm_provider.py          (LLM 호출)
+                       ├── rag.py                            (인덱싱·검색·답변)
+                       ├── guardrails.py / validators.py    (입출력 검증)
+                       └── portfolio_client.py              (외부 HTTP)
+                                              ▲
+schemas/  ────────────────  middleware/ ────┘  (X-Request-ID, rate limit)
+```
+
+- **규칙**: routers는 services만 호출, services는 services를 호출 가능, schemas는 모든 레이어에서 import 가능, middleware는 main.py에 등록만 (services에서 import 금지).
+- **agents/ 디렉토리 부재**: 02:§1 — LangChain/LangGraph/AutoGen 0건. 라우터 함수가 services를 절차적으로 호출하는 함수 체인 형태. H-2 작업으로 `app/agents/` 신설 예정 (ADR 0002).
+- 근거: `llm-service/app/main.py:8-13, 64-66`, 01:§3 (depth 3 트리).
+
+---
+
+## §4. 빌드·테스트·린트
+
+```bash
+# llm-service
+cd llm-service && python -m venv .venv && . .venv/bin/activate
+pip install -q -r requirements.txt
+python -m pytest tests/ -x -q --junitxml=../reports/llm-test-results.xml
+
+# portfolio-service (동일 패턴)
+cd portfolio-service && python -m pytest tests/ -x -q
+
+# auth-service (Spring Boot)
+cd auth-service && ./gradlew test --no-daemon -Dspring.profiles.active=test
+
+# frontend
+cd frontend && npm ci --prefer-offline && npm run build
+```
+
+- **테스트 합산**: 519건 (llm 237 + portfolio 212 + auth 70). Phase 1 audit는 514건 기록(232/212/70) — H-4(`e9acdf8`) 후 prompt registry 테스트 5건 증가. (`docs/agent-capability-audit/05_evaluation_testing.md:§1` 표).
+- **린트/타입 (H-7 도입 예정)**: `ruff check .` + `black --check .` + `mypy app/` — 현재 미적용. 도입 시 PR 게이트 차단 조건이 됨.
+- **CI 파이프라인**: `Jenkinsfile:35-77` (백엔드 3종 병렬), `82-91` (frontend), `96-115` (docker build), `120-142` (push, main 한정), `147-169` (SSH 배포 + 4개 헬스체크).
+
+---
+
+## §5. 프롬프트 컨벤션 (registry 단일 진입점)
+
+- **모든 LLM 호출은 `get_registry().get(name, version)` 단일 진입점을 거친다**. 코드 상수로 직접 f-string/format 호출 금지.
+- 등록 7종 v1.0 — `system_prompt`, `portfolio_analysis_schema`, `risk_explanation_schema`, `backtest_summary_schema`, `recommendation_schema`, `rag_system`, `rag_user` (`llm-service/app/services/prompt_registry.py:130-189`).
+- 새 프롬프트 추가 절차: (1) `prompts.py`에 상수 정의, (2) `_register_default_prompts`에 `register(name, version, template, metadata)` 추가, (3) 호출부에서 `registry.get(...).template` 또는 `.format(...)` 사용.
+- 새 버전 등록은 동일 `name` + 새 `version` 문자열로. 환경변수 `PROMPT_VERSION_<NAME>`으로 런타임 선택 (현재 v1.0만 등록). 자세한 정책은 ADR 0003.
+- **{ } escape 정책**: Jinja2 템플릿(`{{ var }}`)과 JSON 스키마(`{"key": ...}`)가 한 프롬프트에 혼재할 때 JSON 중괄호는 `{{ "{" }}` / `{{ "}" }}`로 escape. 자세한 사례는 ADR 0003 §{} escape.
+
+---
+
+## §6. 외부 의존성
+
+| 카테고리 | 종류 | 위치 |
+|---|---|---|
+| LLM Provider | Google Gemini 2.5-Flash | `llm-service/app/config.py:20`, `requirements.txt:4` |
+| Embedding | Gemini embedding-001 | `llm-service/app/config.py:27` |
+| 벡터 DB | ChromaDB 1.5.0 (in-process persistent) | `llm-service/requirements.txt:3` |
+| 관계형 DB | PostgreSQL 16 | `docker-compose.yml:7` (auth-service 전용) |
+| 캐시 | Redis 7 | `docker-compose.yml:27` (auth-service 전용) |
+| 시장 데이터 | yfinance | `portfolio-service/requirements.txt` |
+
+- **단일 LLM Provider**: `LLMProvider` 추상 + `GeminiProvider` 구현(`llm-service/app/services/llm_provider.py`). OpenAI/Anthropic/Bedrock 분기 부재.
+- **벡터 DB 수평 확장 제약**: ChromaDB가 `llm-service` 컨테이너 볼륨에 묶여 있어 인스턴스 다중화 시 인덱스 분리 문제. T-6에서 Qdrant 이전 예정 (01:§4).
+
+---
+
+## §7. 지배 숫자 (변경 시 본 § + 인용 위치 동시 갱신)
+
+| 지표 | 값 | 근거 |
+|---|---|---|
+| 백엔드 서비스 수 | 4 | docs/agent-capability-audit/01_architecture.md:§1 |
+| 인프라 컴포넌트 수 | 2 (postgres, redis) | docker-compose.yml:6-40 |
+| 테스트 합산 | 519 (237/212/70) | 05:§1 + 본 § §4 갱신 — Phase 1 baseline 514 |
+| 등록 프롬프트 수 | 7 (v1.0) | prompt_registry.py:130-189 |
+| RAG eval 쿼리 수 | 6 (in-code) | 05:§2 라인 62 — 외부 .jsonl 이전이 향후 과제 |
+| llm-service Python | 3.11-slim | llm-service/Dockerfile:2 |
+| LLM 호출 timeout | 60초 (httpx) | portfolio_client.py:37 |
+| CI 백엔드 병렬 stage | 3 (portfolio/llm/auth) | Jenkinsfile:36-77 |
+
+---
+
+## §8. 작업 시작 체크리스트 (모든 PR 공통)
+
+작업 카드를 받으면 본 페이지 외에 다음 7가지를 순서대로 확인한다:
+
+1. **카드 §4 변경 대상 파일 목록** — 그 외 파일은 건드리지 않는다 (CLAUDE.md §6 1책임 원칙).
+2. **선행 작업 완료 여부** — 카드 §1 메타의 "선행 작업"이 main에 머지됐는지.
+3. **§3 레이어 경계** — 새 코드의 import 방향이 `routers → services → 외부`를 위반하지 않는지.
+4. **§5 프롬프트 컨벤션** — LLM 호출이 registry 단일 진입점을 거치는지. 코드 상수 f-string 금지.
+5. **§4 빌드 명령** — 변경 대상 서비스의 pytest를 로컬에서 통과시킨 뒤 PR 올린다.
+6. **CLAUDE.md §4 위험 작업** — force push, db drop, secrets 노출 등은 사용자 확인 필수.
+7. **AGENTS.md 갱신** — 본 카드가 §7 지배 숫자나 §1-§6의 사실을 변경했다면 같은 PR에 본 문서 갱신 포함.
