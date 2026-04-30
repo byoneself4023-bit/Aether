@@ -43,6 +43,8 @@ H-4는 단순 코드 정리(`rag.py` 18줄 → 4줄)가 아니다. **프롬프�
 
 이 정책은 RAG 프롬프트뿐 아니라 **향후 모든 LLM 자산**에 동일하게 적용한다. 도메인 프롬프트, 시스템 프롬프트, JSON 스키마, few-shot 예시, eval 데이터셋(`docs/agent-capability-audit/05_evaluation_testing.md:§2` 라인 62 — 6쿼리 in-code → 외부 `.jsonl` 이전이 향후 과제) 모두 포함. **새 LLM 자산을 코드 상수로 추가하면 본 ADR 위반.**
 
+H-6 도입 후 JSON 스키마는 `app/schemas/llm_output.py`의 Pydantic 모델로 코드 표현하되, registry에는 `model_json_schema()` 결과를 등록해 자산 단일 view를 유지한다 — 모델 정의와 registry template의 동기화는 `tests/test_prompt_registry.py::TestSchemaTemplateSync`가 자동 검증한다.
+
 ---
 
 ## { } escape 정책

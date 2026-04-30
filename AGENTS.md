@@ -97,6 +97,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 
 - **모든 LLM 호출은 `get_registry().get(name, version)` 단일 진입점을 거친다**. 코드 상수로 직접 f-string/format 호출 금지.
 - 등록 7종 v1.0 — `system_prompt`, `portfolio_analysis_schema`, `risk_explanation_schema`, `backtest_summary_schema`, `recommendation_schema`, `rag_system`, `rag_user` (`llm-service/app/services/prompt_registry.py:130-189`).
+- **JSON 응답 스키마는 `app/schemas/llm_output.py` Pydantic 모델로 정의**하고 registry는 `model_json_schema()` 정렬 JSON 문자열을 등록한다. Gemini `response_schema`가 모델을 강제 출력하므로 프롬프트 텍스트에 schema를 주입하지 않는다 (H-6).
 - 새 프롬프트 추가 절차: (1) `prompts.py`에 상수 정의, (2) `_register_default_prompts`에 `register(name, version, template, metadata)` 추가, (3) 호출부에서 `registry.get(...).template` 또는 `.format(...)` 사용.
 - 새 버전 등록은 동일 `name` + 새 `version` 문자열로. 환경변수 `PROMPT_VERSION_<NAME>`으로 런타임 선택 (현재 v1.0만 등록). 자세한 정책은 ADR 0003.
 - **{ } escape 정책**: Jinja2 템플릿(`{{ var }}`)과 JSON 스키마(`{"key": ...}`)가 한 프롬프트에 혼재할 때 JSON 중괄호는 `{{ "{" }}` / `{{ "}" }}`로 escape. 자세한 사례는 ADR 0003 §{} escape.
