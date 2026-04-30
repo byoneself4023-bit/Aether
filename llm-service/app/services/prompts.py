@@ -1,94 +1,16 @@
 """프롬프트 템플릿 - 포트폴리오 분석 결과를 자연어로 해석"""
 
 from jinja2 import Template
-from typing import Any
-
-
-# ============================================================
-# JSON 응답 스키마 정의
-# ============================================================
-
-PORTFOLIO_ANALYSIS_SCHEMA = """{
-  "summary": "한 문장 요약",
-  "composition": {
-    "description": "포트폴리오 구성 설명",
-    "top_holdings": ["상위 종목 설명"],
-    "sector_concentration": "섹터 집중도 분석"
-  },
-  "metrics_interpretation": {
-    "return_analysis": "수익률 해석",
-    "risk_analysis": "변동성/리스크 해석",
-    "sharpe_analysis": "샤프 비율 해석"
-  },
-  "strengths": ["강점 1", "강점 2"],
-  "weaknesses": ["약점 1", "약점 2"],
-  "diversification_score": "상/중/하",
-  "investor_profile": "적합한 투자자 유형"
-}"""
-
-RISK_EXPLANATION_SCHEMA = """{
-  "summary": "한 문장 요약",
-  "var_explanation": {
-    "simple_explanation": "비전문가용 VaR 설명",
-    "technical_detail": "기술적 상세 설명",
-    "example_scenario": "구체적 시나리오 예시"
-  },
-  "cvar_explanation": {
-    "simple_explanation": "비전문가용 CVaR 설명",
-    "worst_case_scenario": "최악의 경우 시나리오"
-  },
-  "risk_level": "매우낮음/낮음/보통/높음/매우높음",
-  "risk_factors": ["주요 리스크 요인"],
-  "hedging_suggestions": ["리스크 완화 제안"]
-}"""
-
-BACKTEST_SUMMARY_SCHEMA = """{
-  "summary": "한 문장 요약",
-  "performance_highlights": {
-    "total_return": "총 수익률 해석",
-    "annual_return": "연환산 수익률 해석",
-    "volatility": "변동성 해석",
-    "sharpe_ratio": "샤프 비율 해석"
-  },
-  "drawdown_analysis": {
-    "max_drawdown": "최대 낙폭 해석",
-    "recovery_insight": "회복 관련 인사이트"
-  },
-  "rebalancing_analysis": {
-    "frequency": "리밸런싱 빈도 평가",
-    "turnover_impact": "거래비용 영향 분석"
-  },
-  "period_breakdown": ["기간별 주요 이벤트"],
-  "strategy_effectiveness": "전략 효과성 평가",
-  "forward_outlook": "향후 전망"
-}"""
-
-RECOMMENDATION_SCHEMA = """{
-  "summary": "한 문장 요약",
-  "current_assessment": "현재 포트폴리오 평가",
-  "recommendations": [
-    {
-      "action": "매수/매도/유지/리밸런싱",
-      "target": "대상 종목/섹터",
-      "rationale": "근거",
-      "priority": "상/중/하"
-    }
-  ],
-  "risk_adjustments": ["리스크 조정 제안"],
-  "sector_rebalancing": {
-    "overweight": ["비중 확대 섹터"],
-    "underweight": ["비중 축소 섹터"]
-  },
-  "action_timeline": "단기/중기/장기 액션 플랜",
-  "caveats": ["주의사항/한계"]
-}"""
-
 
 # ============================================================
 # 프롬프트 템플릿
 # ============================================================
 
-PORTFOLIO_ANALYSIS_TEMPLATE = Template("""당신은 전문 포트폴리오 분석가입니다. 주어진 포트폴리오 데이터를 분석하여 투자자가 이해하기 쉬운 한국어로 설명해주세요.
+# JSON 응답 스키마는 app/schemas/llm_output.py Pydantic 모델로 정의되어 있고,
+# Gemini response_schema가 강제하므로 프롬프트 텍스트에 schema를 주입하지 않는다 (H-6).
+
+PORTFOLIO_ANALYSIS_TEMPLATE = Template(
+    """당신은 전문 포트폴리오 분석가입니다. 주어진 포트폴리오 데이터를 분석하여 투자자가 이해하기 쉬운 한국어로 설명해주세요.
 
 ## 포트폴리오 구성
 {% for ticker, weight in weights.items() %}
@@ -110,14 +32,12 @@ PORTFOLIO_ANALYSIS_TEMPLATE = Template("""당신은 전문 포트폴리오 분�
 4. 이 포트폴리오의 강점과 약점을 분석하세요
 5. 적합한 투자자 유형을 제안하세요
 
-## 응답 형식
-반드시 아래 JSON 스키마에 맞춰 응답하세요. JSON만 출력하고 다른 텍스트는 포함하지 마세요.
-
-{{ schema }}
-""")
+"""
+)
 
 
-RISK_EXPLANATION_TEMPLATE = Template("""당신은 리스크 관리 전문가입니다. 주어진 리스크 분석 결과를 투자 경험이 없는 일반인도 이해할 수 있도록 쉽게 설명해주세요.
+RISK_EXPLANATION_TEMPLATE = Template(
+    """당신은 리스크 관리 전문가입니다. 주어진 리스크 분석 결과를 투자 경험이 없는 일반인도 이해할 수 있도록 쉽게 설명해주세요.
 
 ## 리스크 분석 결과
 - 포트폴리오 변동성 (연율): {{ "%.2f"|format(risk_data.volatility * 100) }}%
@@ -150,14 +70,12 @@ RISK_EXPLANATION_TEMPLATE = Template("""당신은 리스크 관리 전문가입�
 3. 이 포트폴리오의 리스크 수준을 5단계로 평가하세요
 4. 주요 리스크 요인과 완화 방안을 제시하세요
 
-## 응답 형식
-반드시 아래 JSON 스키마에 맞춰 응답하세요. JSON만 출력하고 다른 텍스트는 포함하지 마세요.
-
-{{ schema }}
-""")
+"""
+)
 
 
-BACKTEST_SUMMARY_TEMPLATE = Template("""당신은 퀀트 전략 분석가입니다. 백테스트 결과를 분석하여 전략의 성과와 특성을 명확하게 설명해주세요.
+BACKTEST_SUMMARY_TEMPLATE = Template(
+    """당신은 퀀트 전략 분석가입니다. 백테스트 결과를 분석하여 전략의 성과와 특성을 명확하게 설명해주세요.
 
 ## 백테스트 개요
 - 전략: {{ strategy }}
@@ -196,14 +114,12 @@ BACKTEST_SUMMARY_TEMPLATE = Template("""당신은 퀀트 전략 분석가입니�
 4. 리밸런싱 전략의 효과성을 평가하세요
 5. 이 전략의 향후 전망을 제시하세요
 
-## 응답 형식
-반드시 아래 JSON 스키마에 맞춰 응답하세요. JSON만 출력하고 다른 텍스트는 포함하지 마세요.
-
-{{ schema }}
-""")
+"""
+)
 
 
-RECOMMENDATION_TEMPLATE = Template("""당신은 자산배분 전문 어드바이저입니다. 현재 포트폴리오와 시장 상황을 분석하여 구체적인 개선 제안을 해주세요.
+RECOMMENDATION_TEMPLATE = Template(
+    """당신은 자산배분 전문 어드바이저입니다. 현재 포트폴리오와 시장 상황을 분석하여 구체적인 개선 제안을 해주세요.
 
 ## 현재 포트폴리오
 {% for ticker, weight in current_portfolio.items() %}
@@ -246,21 +162,17 @@ RECOMMENDATION_TEMPLATE = Template("""당신은 자산배분 전문 어드바이
 - 모든 제안은 근거와 함께 제시하세요
 - 투자 결정은 개인의 판단이며, 이 분석은 참고용임을 명시하세요
 
-## 응답 형식
-반드시 아래 JSON 스키마에 맞춰 응답하세요. JSON만 출력하고 다른 텍스트는 포함하지 마세요.
-
-{{ schema }}
-""")
+"""
+)
 
 
 # ============================================================
 # 프롬프트 생성 함수
 # ============================================================
 
+
 def portfolio_analysis_prompt(
-    weights: dict[str, float],
-    metrics: dict[str, float],
-    tickers_info: dict[str, dict] | None = None
+    weights: dict[str, float], metrics: dict[str, float], tickers_info: dict[str, dict] | None = None
 ) -> str:
     """
     포트폴리오 분석 프롬프트 생성
@@ -285,14 +197,10 @@ def portfolio_analysis_prompt(
         weights=weights,
         metrics=metrics,
         tickers_info=tickers_info or {},
-        schema=PORTFOLIO_ANALYSIS_SCHEMA
     )
 
 
-def risk_explanation_prompt(
-    risk_data: dict[str, float],
-    investment_amount: float | None = None
-) -> str:
+def risk_explanation_prompt(risk_data: dict[str, float], investment_amount: float | None = None) -> str:
     """
     리스크 설명 프롬프트 생성
 
@@ -312,6 +220,7 @@ def risk_explanation_prompt(
     Returns:
         렌더링된 프롬프트 문자열
     """
+
     # dict를 객체처럼 접근할 수 있도록 변환
     class RiskDataWrapper:
         def __init__(self, data: dict):
@@ -321,7 +230,6 @@ def risk_explanation_prompt(
     return RISK_EXPLANATION_TEMPLATE.render(
         risk_data=RiskDataWrapper(risk_data),
         investment_amount=investment_amount,
-        schema=RISK_EXPLANATION_SCHEMA
     )
 
 
@@ -331,7 +239,7 @@ def backtest_summary_prompt(
     period: str,
     tickers: list[str],
     rebalance_history: list[dict] | None = None,
-    final_weights: dict[str, float] | None = None
+    final_weights: dict[str, float] | None = None,
 ) -> str:
     """
     백테스트 요약 프롬프트 생성
@@ -357,6 +265,7 @@ def backtest_summary_prompt(
     Returns:
         렌더링된 프롬프트 문자열
     """
+
     # dict를 객체처럼 접근할 수 있도록 변환
     class MetricsWrapper:
         def __init__(self, data: dict):
@@ -366,7 +275,7 @@ def backtest_summary_prompt(
     strategy_names = {
         "max_sharpe": "최대 샤프 비율 (MSR)",
         "min_variance": "최소 분산 (MVP)",
-        "equal_weight": "동일 비중"
+        "equal_weight": "동일 비중",
     }
 
     return BACKTEST_SUMMARY_TEMPLATE.render(
@@ -376,7 +285,6 @@ def backtest_summary_prompt(
         tickers=tickers,
         rebalance_history=rebalance_history,
         final_weights=final_weights,
-        schema=BACKTEST_SUMMARY_SCHEMA
     )
 
 
@@ -386,7 +294,7 @@ def recommendation_prompt(
     metrics: dict[str, float] | None = None,
     risk_data: dict[str, float] | None = None,
     market_context: str | None = None,
-    investor_profile: dict[str, str] | None = None
+    investor_profile: dict[str, str] | None = None,
 ) -> str:
     """
     포트폴리오 개선 제안 프롬프트 생성
@@ -406,6 +314,7 @@ def recommendation_prompt(
     Returns:
         렌더링된 프롬프트 문자열
     """
+
     # dict를 객체처럼 접근할 수 있도록 변환
     class DictWrapper:
         def __init__(self, data: dict):
@@ -419,7 +328,6 @@ def recommendation_prompt(
         risk_data=DictWrapper(risk_data) if risk_data else None,
         market_context=market_context,
         investor_profile=DictWrapper(investor_profile) if investor_profile else None,
-        schema=RECOMMENDATION_SCHEMA
     )
 
 
@@ -463,8 +371,33 @@ def get_system_prompt(version: str | None = None) -> str:
     """
     try:
         from app.services.prompt_registry import get_registry
+
         registry = get_registry()
         prompt = registry.get("system_prompt", version=version)
         return prompt.template
     except (KeyError, ImportError):
         return SYSTEM_PROMPT
+
+
+# ============================================================
+# RAG 프롬프트 (str.format() 기반 — placeholder: {context}, {question})
+# ============================================================
+
+RAG_USER_TEMPLATE = """다음 금융 지식을 참고하여 질문에 답변해주세요.
+
+## 참고 자료
+{context}
+
+## 질문
+{question}
+
+## 답변 지침
+1. 참고 자료에 기반하여 정확하게 답변하세요
+2. 참고 자료에 없는 내용은 추측하지 마세요
+3. 전문 용어는 쉽게 설명해주세요
+4. 한국어로 답변하세요
+"""
+
+RAG_SYSTEM_PROMPT = """당신은 금융 지식 전문가입니다.
+주어진 참고 자료를 바탕으로 정확하고 이해하기 쉽게 답변합니다.
+참고 자료에 없는 내용은 "해당 정보가 참고 자료에 없습니다"라고 말합니다."""

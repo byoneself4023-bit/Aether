@@ -10,6 +10,7 @@ import google.generativeai as genai
 
 from app.config import get_settings
 from app.services.llm import call_llm, LLMError
+from app.services.prompt_registry import get_registry
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -569,25 +570,12 @@ def query_with_llm(
     # 최적화된 컨텍스트 빌드
     context, sources = build_optimized_context(relevant_docs, question)
 
-    # RAG 프롬프트 생성
-    prompt = f"""다음 금융 지식을 참고하여 질문에 답변해주세요.
-
-## 참고 자료
-{context}
-
-## 질문
-{question}
-
-## 답변 지침
-1. 참고 자료에 기반하여 정확하게 답변하세요
-2. 참고 자료에 없는 내용은 추측하지 마세요
-3. 전문 용어는 쉽게 설명해주세요
-4. 한국어로 답변하세요
-"""
-
-    system_prompt = """당신은 금융 지식 전문가입니다.
-주어진 참고 자료를 바탕으로 정확하고 이해하기 쉽게 답변합니다.
-참고 자료에 없는 내용은 "해당 정보가 참고 자료에 없습니다"라고 말합니다."""
+    # RAG 프롬프트 생성 (prompt_registry 단일 진입점)
+    registry = get_registry()
+    prompt = registry.get("rag_user", "1.0").template.format(
+        context=context, question=question
+    )
+    system_prompt = registry.get("rag_system", "1.0").template
 
     # LLM 호출
     try:

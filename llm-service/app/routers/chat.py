@@ -1,37 +1,41 @@
 """채팅 API 라우터 - 자연어 포트폴리오 분석"""
 
-import re
 import logging
+import re
+
 from fastapi import APIRouter, HTTPException
 
 from app.schemas.chat import (
+    AnalysisResponse,
     ChatRequest,
     ChatResponse,
     PortfolioAnalysisRequest,
-    AnalysisResponse,
+    PortfolioData,
     QuickAnalysisRequest,
     QuickAnalysisResponse,
     SourceInfo,
-    PortfolioData,
+)
+from app.services.guardrails import sanitize_user_input, wrap_user_input
+from app.services.llm import (
+    LLMError,
+    LLMResponseError,
+    analyze_portfolio,
+    call_llm,
+    explain_risk,
+    get_recommendation,
+    summarize_backtest,
 )
 from app.services.portfolio_client import (
-    get_optimization,
-    get_risk_analysis,
-    get_backtest,
-    get_full_analysis,
-    is_available,
     PortfolioServiceError,
     PortfolioServiceUnavailable,
+    get_backtest,
+    get_full_analysis,
+    get_optimization,
+    get_risk_analysis,
+    is_available,
 )
-from app.services.llm import (
-    analyze_portfolio,
-    explain_risk,
-    summarize_backtest,
-    get_recommendation,
-    LLMError,
-)
+from app.services.prompts import get_system_prompt, portfolio_analysis_prompt
 from app.services.rag import query_with_llm
-from app.services.guardrails import sanitize_user_input, wrap_user_input
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +46,7 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 # 유틸리티 함수
 # ============================================================
 
+
 def extract_tickers(message: str) -> list[str]:
     """
     메시지에서 티커 심볼 추출
@@ -49,16 +54,63 @@ def extract_tickers(message: str) -> list[str]:
     예: "AAPL, GOOGL, NVDA 분석해줘" → ["AAPL", "GOOGL", "NVDA"]
     """
     # 대문자 1-5자 패턴 (티커 형식)
-    pattern = r'\b([A-Z]{1,5})\b'
+    pattern = r"\b([A-Z]{1,5})\b"
     matches = re.findall(pattern, message.upper())
 
     # 일반 영어 단어 제외
     common_words = {
-        "I", "A", "AN", "THE", "TO", "FOR", "AND", "OR", "BUT", "IS", "IT",
-        "IN", "ON", "AT", "BY", "OF", "AS", "IF", "MY", "ME", "WE", "US",
-        "API", "LLM", "RAG", "MVP", "MSR", "VAR", "ETF", "IPO", "CEO", "CFO",
-        "DO", "BE", "HAS", "HAD", "CAN", "WILL", "WITH", "WANT", "NEED", "GET",
-        "ALL", "ANY", "ARE", "NOT", "NEW", "OLD", "TOP", "LOW", "HIGH", "BEST",
+        "I",
+        "A",
+        "AN",
+        "THE",
+        "TO",
+        "FOR",
+        "AND",
+        "OR",
+        "BUT",
+        "IS",
+        "IT",
+        "IN",
+        "ON",
+        "AT",
+        "BY",
+        "OF",
+        "AS",
+        "IF",
+        "MY",
+        "ME",
+        "WE",
+        "US",
+        "API",
+        "LLM",
+        "RAG",
+        "MVP",
+        "MSR",
+        "VAR",
+        "ETF",
+        "IPO",
+        "CEO",
+        "CFO",
+        "DO",
+        "BE",
+        "HAS",
+        "HAD",
+        "CAN",
+        "WILL",
+        "WITH",
+        "WANT",
+        "NEED",
+        "GET",
+        "ALL",
+        "ANY",
+        "ARE",
+        "NOT",
+        "NEW",
+        "OLD",
+        "TOP",
+        "LOW",
+        "HIGH",
+        "BEST",
     }
 
     tickers = [t for t in matches if t not in common_words]
@@ -105,6 +157,7 @@ def detect_intent(message: str) -> str:
 # ============================================================
 # 엔드포인트
 # ============================================================
+
 
 @router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
@@ -155,10 +208,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
     # Portfolio 서비스 확인
     if not await is_available():
-        raise HTTPException(
-            status_code=503,
-            detail="Portfolio service is unavailable"
-        )
+        raise HTTPException(status_code=503, detail="Portfolio service is unavailable")
 
     try:
         # 최적화 수행
@@ -226,20 +276,11 @@ async def chat(request: ChatRequest) -> ChatResponse:
         )
 
     except PortfolioServiceUnavailable:
-        raise HTTPException(
-            status_code=503,
-            detail="Portfolio service is unavailable"
-        )
+        raise HTTPException(status_code=503, detail="Portfolio service is unavailable")
     except PortfolioServiceError as e:
-        raise HTTPException(
-            status_code=e.status_code or 500,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=e.status_code or 500, detail=str(e))
     except LLMError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"LLM analysis failed: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"LLM analysis failed: {e}")
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
@@ -261,10 +302,7 @@ async def analyze_portfolio_endpoint(request: PortfolioAnalysisRequest) -> Analy
 
     # Portfolio 서비스 확인
     if not await is_available():
-        raise HTTPException(
-            status_code=503,
-            detail="Portfolio service is unavailable"
-        )
+        raise HTTPException(status_code=503, detail="Portfolio service is unavailable")
 
     try:
         # 전체 분석 수행
@@ -336,20 +374,11 @@ async def analyze_portfolio_endpoint(request: PortfolioAnalysisRequest) -> Analy
         )
 
     except PortfolioServiceUnavailable:
-        raise HTTPException(
-            status_code=503,
-            detail="Portfolio service is unavailable"
-        )
+        raise HTTPException(status_code=503, detail="Portfolio service is unavailable")
     except PortfolioServiceError as e:
-        raise HTTPException(
-            status_code=e.status_code or 500,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=e.status_code or 500, detail=str(e))
     except LLMError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"LLM analysis failed: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"LLM analysis failed: {e}")
 
 
 @router.post("/analyze-result", response_model=QuickAnalysisResponse)
@@ -379,15 +408,38 @@ async def analyze_result(request: QuickAnalysisRequest) -> QuickAnalysisResponse
         if isinstance(composition, dict) and "description" in composition:
             parts.append(composition["description"])
 
+        _METRICS_LABELS = {
+            "return_analysis": "수익률 분석",
+            "risk_analysis": "리스크 분석",
+            "sharpe_analysis": "샤프 비율 분석",
+        }
         metrics_interp = result.get("metrics_interpretation")
         if isinstance(metrics_interp, dict):
             for key, value in metrics_interp.items():
                 if value:
-                    parts.append(f"**{key}**: {value}")
+                    label = _METRICS_LABELS.get(key, key)
+                    parts.append(f"**{label}**: {value}")
 
         analysis_text = "\n\n".join(parts) if parts else "분석이 완료되었습니다."
 
         return QuickAnalysisResponse(analysis=analysis_text)
+
+    except LLMResponseError:
+        # 구조화 응답 검증 실패 시 plaintext fallback: LLM에 직접 텍스트 요청
+        logger.warning("Structured response failed for quick analysis, falling back to plaintext")
+        try:
+            prompt = portfolio_analysis_prompt(
+                weights=request.weights,
+                metrics=request.metrics,
+            )
+            fallback_text = call_llm(
+                prompt=prompt + "\n\n마크다운 형식으로 자연어 답변만 해주세요. JSON은 사용하지 마세요.",
+                system_prompt=get_system_prompt(),
+            )
+            return QuickAnalysisResponse(analysis=fallback_text.strip())
+        except LLMError as fallback_err:
+            logger.error(f"Plaintext fallback also failed: {fallback_err}")
+            raise HTTPException(status_code=500, detail="분석 중 오류가 발생했습니다.")
 
     except LLMError as e:
         raise HTTPException(status_code=500, detail=f"LLM analysis failed: {e}")

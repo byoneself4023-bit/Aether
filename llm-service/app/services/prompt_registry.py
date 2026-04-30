@@ -1,9 +1,13 @@
 """프롬프트 버전 관리 레지스트리"""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
+
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PromptTemplate:
     """버전 관리되는 프롬프트 템플릿"""
+
     name: str
     version: str
     template: str
@@ -127,14 +132,25 @@ def get_registry() -> PromptRegistry:
     return _registry
 
 
+def _schema_template(model: type[BaseModel]) -> str:
+    """Pydantic 모델의 JSON Schema를 정렬된 JSON 문자열로 직렬화 (registry 자산 등록용, H-6)."""
+    import json
+
+    return json.dumps(model.model_json_schema(), sort_keys=True, ensure_ascii=False)
+
+
 def _register_default_prompts(registry: PromptRegistry) -> None:
     """기본 프롬프트 v1.0 등록"""
+    from app.schemas.llm_output import (
+        BacktestSummaryResponse,
+        PortfolioAnalysisResponse,
+        RecommendationResponse,
+        RiskAnalysisResponse,
+    )
     from app.services.prompts import (
+        RAG_SYSTEM_PROMPT,
+        RAG_USER_TEMPLATE,
         SYSTEM_PROMPT,
-        PORTFOLIO_ANALYSIS_SCHEMA,
-        RISK_EXPLANATION_SCHEMA,
-        BACKTEST_SUMMARY_SCHEMA,
-        RECOMMENDATION_SCHEMA,
     )
 
     registry.register(
@@ -147,27 +163,53 @@ def _register_default_prompts(registry: PromptRegistry) -> None:
     registry.register(
         name="portfolio_analysis_schema",
         version="1.0",
-        template=PORTFOLIO_ANALYSIS_SCHEMA,
-        metadata={"description": "포트폴리오 분석 JSON 스키마"},
+        template=_schema_template(PortfolioAnalysisResponse),
+        metadata={
+            "description": "포트폴리오 분석 JSON 스키마 (PortfolioAnalysisResponse.model_json_schema)",
+            "source_model": "app.schemas.llm_output.PortfolioAnalysisResponse",
+        },
     )
 
     registry.register(
         name="risk_explanation_schema",
         version="1.0",
-        template=RISK_EXPLANATION_SCHEMA,
-        metadata={"description": "리스크 설명 JSON 스키마"},
+        template=_schema_template(RiskAnalysisResponse),
+        metadata={
+            "description": "리스크 설명 JSON 스키마 (RiskAnalysisResponse.model_json_schema)",
+            "source_model": "app.schemas.llm_output.RiskAnalysisResponse",
+        },
     )
 
     registry.register(
         name="backtest_summary_schema",
         version="1.0",
-        template=BACKTEST_SUMMARY_SCHEMA,
-        metadata={"description": "백테스트 요약 JSON 스키마"},
+        template=_schema_template(BacktestSummaryResponse),
+        metadata={
+            "description": "백테스트 요약 JSON 스키마 (BacktestSummaryResponse.model_json_schema)",
+            "source_model": "app.schemas.llm_output.BacktestSummaryResponse",
+        },
     )
 
     registry.register(
         name="recommendation_schema",
         version="1.0",
-        template=RECOMMENDATION_SCHEMA,
-        metadata={"description": "투자 추천 JSON 스키마"},
+        template=_schema_template(RecommendationResponse),
+        metadata={
+            "description": "투자 추천 JSON 스키마 (RecommendationResponse.model_json_schema)",
+            "source_model": "app.schemas.llm_output.RecommendationResponse",
+        },
+    )
+
+    registry.register(
+        name="rag_system",
+        version="1.0",
+        template=RAG_SYSTEM_PROMPT,
+        metadata={"description": "RAG 시스템 프롬프트 - 금융 지식 답변"},
+    )
+
+    registry.register(
+        name="rag_user",
+        version="1.0",
+        template=RAG_USER_TEMPLATE,
+        metadata={"description": "RAG 유저 프롬프트 - context/question 치환"},
     )

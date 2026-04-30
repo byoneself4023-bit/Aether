@@ -1,11 +1,18 @@
 """Major #8: 프롬프트 버전 관리 테스트"""
 
-import pytest
+import json
 import time
 
+import pytest
+from app.schemas.llm_output import (
+    BacktestSummaryResponse,
+    PortfolioAnalysisResponse,
+    RecommendationResponse,
+    RiskAnalysisResponse,
+)
 from app.services.prompt_registry import (
-    PromptTemplate,
     PromptRegistry,
+    PromptTemplate,
     get_registry,
 )
 
@@ -105,7 +112,9 @@ class TestPromptRegistry:
     def test_metadata(self):
         """메타데이터 저장"""
         self.registry.register(
-            "test", "1.0", "template",
+            "test",
+            "1.0",
+            "template",
             metadata={"author": "team", "description": "test prompt"},
         )
         result = self.registry.get("test")
@@ -140,6 +149,25 @@ class TestGlobalRegistry:
         assert "recommendation_schema" in names
 
 
+class TestSchemaTemplateSync:
+    """H-6: registry 4종 schema의 template이 Pydantic 모델과 동기화되는지 검증."""
+
+    @pytest.mark.parametrize(
+        "name,model",
+        [
+            ("portfolio_analysis_schema", PortfolioAnalysisResponse),
+            ("risk_explanation_schema", RiskAnalysisResponse),
+            ("backtest_summary_schema", BacktestSummaryResponse),
+            ("recommendation_schema", RecommendationResponse),
+        ],
+    )
+    def test_schema_template_matches_pydantic_model(self, name, model):
+        """registry의 4종 schema template == Pydantic 모델의 model_json_schema (정렬 JSON)."""
+        registry = get_registry()
+        expected = json.dumps(model.model_json_schema(), sort_keys=True, ensure_ascii=False)
+        assert registry.get(name, "1.0").template == expected
+
+
 class TestPromptsIntegration:
     """prompts.py 통합 테스트"""
 
@@ -156,3 +184,47 @@ class TestPromptsIntegration:
 
         prompt = get_system_prompt(version="1.0")
         assert "Aether" in prompt
+
+
+class TestRagPrompts:
+    """RAG 프롬프트 registry 등록·조회·렌더 (H-4)"""
+
+    def test_rag_system_registered_v1(self):
+        """rag_system v1.0 등록 확인"""
+        registry = get_registry()
+        prompt = registry.get("rag_system", version="1.0")
+        assert prompt.version == "1.0"
+        assert "금융 지식 전문가" in prompt.template
+
+    def test_rag_user_registered_v1(self):
+        """rag_user v1.0 등록 확인"""
+        registry = get_registry()
+        prompt = registry.get("rag_user", version="1.0")
+        assert prompt.version == "1.0"
+        assert "{context}" in prompt.template
+        assert "{question}" in prompt.template
+
+    def test_rag_user_template_format_renders(self):
+        """rag_user .template.format()이 두 placeholder를 모두 치환"""
+        registry = get_registry()
+        rendered = registry.get("rag_user", "1.0").template.format(
+            context="샘플 참고 자료", question="샤프 비율이 뭐야"
+        )
+        assert "샘플 참고 자료" in rendered
+        assert "샤프 비율이 뭐야" in rendered
+        assert "{context}" not in rendered
+        assert "{question}" not in rendered
+
+    def test_rag_prompts_byte_identical_to_constants(self):
+        """registry 텍스트가 prompts.py 상수와 byte-identical"""
+        from app.services.prompts import RAG_SYSTEM_PROMPT, RAG_USER_TEMPLATE
+
+        registry = get_registry()
+        assert registry.get("rag_system", "1.0").template == RAG_SYSTEM_PROMPT
+        assert registry.get("rag_user", "1.0").template == RAG_USER_TEMPLATE
+
+    def test_rag_user_unregistered_version_raises(self):
+        """미등록 버전 조회 시 KeyError"""
+        registry = get_registry()
+        with pytest.raises(KeyError, match="version not found"):
+            registry.get("rag_user", version="9.9")
