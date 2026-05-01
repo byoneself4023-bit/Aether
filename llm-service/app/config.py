@@ -38,10 +38,10 @@ class Settings(BaseSettings):
     # 인증 (auth-service와 동일 HS256 비밀키 - 256bit 이상)
     jwt_secret: str = ""
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8"
-    )
+    # T-1b: ReAct 토글 (USE_REACT_AGENT=false면 절차적 호출 fallback)
+    use_react_agent: bool = True
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 @lru_cache
