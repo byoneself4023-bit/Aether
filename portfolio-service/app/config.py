@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     # 데이터 제공자 설정
     data_provider: str = "yfinance"  # 지원: "yfinance"
 
+    # 인증 (auth-service와 동일 HS256 비밀키 - 256bit 이상)
+    jwt_secret: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8"

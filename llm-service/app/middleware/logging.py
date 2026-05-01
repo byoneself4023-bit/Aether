@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import time
 import uuid
 from contextvars import ContextVar
@@ -11,6 +12,15 @@ from starlette.responses import Response
 
 # 요청별 request_id를 저장하는 context variable
 request_id_var: ContextVar[str] = ContextVar("request_id", default="")
+
+# Authorization Bearer 토큰 마스킹 패턴
+_BEARER_TOKEN_RE = re.compile(r"Bearer\s+[A-Za-z0-9._\-]+", re.IGNORECASE)
+
+
+def _mask_secrets(text: str) -> str:
+    """로그 메시지에서 Bearer 토큰을 마스킹"""
+    return _BEARER_TOKEN_RE.sub("Bearer ***", text)
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +33,7 @@ class StructuredLogFormatter(logging.Formatter):
             "timestamp": self.formatTime(record, self.datefmt),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": _mask_secrets(record.getMessage()),
         }
 
         # request_id가 있으면 추가
@@ -40,7 +50,7 @@ class StructuredLogFormatter(logging.Formatter):
             if hasattr(record, key):
                 log_data[key] = getattr(record, key)
 
-        return json.dumps(log_data, ensure_ascii=False, default=str)
+        return _mask_secrets(json.dumps(log_data, ensure_ascii=False, default=str))
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):

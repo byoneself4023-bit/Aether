@@ -1,7 +1,8 @@
 """백테스트 API 라우터"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.middleware.auth import verify_jwt
 from app.schemas.portfolio import (
     BacktestRequest,
     BacktestResponse,
@@ -15,7 +16,10 @@ router = APIRouter(prefix="/api", tags=["backtest"])
 
 
 @router.post("/backtest", response_model=BacktestResponse)
-def run_backtest(request: BacktestRequest) -> BacktestResponse:
+def run_backtest(
+    request: BacktestRequest,
+    user: dict = Depends(verify_jwt),
+) -> BacktestResponse:
     """
     Walk-forward 백테스트 실행
 

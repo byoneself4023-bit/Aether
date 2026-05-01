@@ -55,6 +55,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+      - JWT_SECRET=${JWT_SECRET}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
       interval: 30s
@@ -78,6 +79,7 @@ services:
       - GOOGLE_API_KEY=${GEMINI_API_KEY}
       - PORTFOLIO_SERVICE_URL=http://portfolio-service:8001
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+      - JWT_SECRET=${JWT_SECRET}
     volumes:
       - llm_chroma_data:/app/data/chroma
     depends_on:

@@ -7,9 +7,19 @@ from typing import Any, Literal
 import httpx
 
 from app.config import get_settings
+from app.middleware.logging import request_id_var
+from app.services.http_context import auth_token_var
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+
+async def _forward_headers(request: httpx.Request) -> None:
+    """X-Request-ID + Authorization 자동 forward (분산 트레이싱 + 인증 전파)"""
+    if rid := request_id_var.get(""):
+        request.headers["X-Request-ID"] = rid[:64]
+    if token := auth_token_var.get(""):
+        request.headers["Authorization"] = f"Bearer {token}"
 
 
 class PortfolioServiceError(Exception):
@@ -36,6 +46,7 @@ def _get_client() -> httpx.AsyncClient:
         base_url=settings.portfolio_service_url,
         timeout=httpx.Timeout(60.0),  # 백테스트가 오래 걸릴 수 있음
         headers={"Content-Type": "application/json"},
+        event_hooks={"request": [_forward_headers]},
     )
 
 

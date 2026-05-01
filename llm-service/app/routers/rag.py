@@ -1,8 +1,9 @@
 """RAG API 라우터 - 금융 지식 검색 및 질문 답변"""
 
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.middleware.auth import verify_jwt
 from app.schemas.chat import (
     RAGQueryRequest,
     RAGQueryResponse,
@@ -26,7 +27,10 @@ router = APIRouter(prefix="/api/rag", tags=["rag"])
 
 
 @router.post("/query", response_model=RAGQueryResponse)
-async def rag_query(request: RAGQueryRequest) -> RAGQueryResponse:
+async def rag_query(
+    request: RAGQueryRequest,
+    user: dict = Depends(verify_jwt),
+) -> RAGQueryResponse:
     """
     RAG 기반 금융 질문 답변
 
@@ -91,7 +95,10 @@ async def rag_query(request: RAGQueryRequest) -> RAGQueryResponse:
 
 
 @router.post("/search")
-async def rag_search(request: RAGQueryRequest):
+async def rag_search(
+    request: RAGQueryRequest,
+    user: dict = Depends(verify_jwt),
+):
     """
     RAG 문서 검색 (LLM 없이)
 
@@ -135,7 +142,10 @@ async def rag_search(request: RAGQueryRequest):
 
 
 @router.post("/init")
-async def rag_init(request: RAGInitRequest):
+async def rag_init(
+    request: RAGInitRequest,
+    user: dict = Depends(verify_jwt),
+):
     """
     벡터스토어 초기화
 
@@ -170,7 +180,9 @@ async def rag_init(request: RAGInitRequest):
 
 
 @router.get("/status", response_model=RAGStatusResponse)
-async def rag_status() -> RAGStatusResponse:
+async def rag_status(
+    user: dict = Depends(verify_jwt),
+) -> RAGStatusResponse:
     """
     벡터스토어 상태 확인
     """
@@ -195,7 +207,10 @@ async def rag_status() -> RAGStatusResponse:
 
 
 @router.get("/documents")
-async def rag_documents(limit: int = 50):
+async def rag_documents(
+    limit: int = 50,
+    user: dict = Depends(verify_jwt),
+):
     """
     저장된 문서 목록 조회
     """
@@ -226,7 +241,9 @@ async def rag_documents(limit: int = 50):
 
 
 @router.get("/sources")
-async def rag_sources():
+async def rag_sources(
+    user: dict = Depends(verify_jwt),
+):
     """
     사용 가능한 문서 소스 목록
     """
