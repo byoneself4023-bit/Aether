@@ -1,8 +1,9 @@
 """리스크 분석 API 라우터"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 import numpy as np
 
+from app.middleware.auth import verify_jwt
 from app.schemas.portfolio import (
     RiskRequest,
     RiskResponse,
@@ -21,7 +22,10 @@ router = APIRouter(prefix="/api", tags=["risk"])
 
 
 @router.post("/risk", response_model=RiskResponse)
-def analyze_risk(request: RiskRequest) -> RiskResponse:
+def analyze_risk(
+    request: RiskRequest,
+    user: dict = Depends(verify_jwt),
+) -> RiskResponse:
     """
     포트폴리오 리스크 분석
 

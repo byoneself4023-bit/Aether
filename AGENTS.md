@@ -17,7 +17,7 @@ frontend ──HTTP──┬──> auth-service     (JWT 발급/검증)
 ```
 
 - **요점**: `llm-service`는 `auth-service`와 **직접 통합되지 않는다**. 인증은 frontend가 auth-service로부터 JWT를 받아 portfolio/llm 호출 시 헤더에 동봉하는 방식. (`docs/agent-capability-audit/01_architecture.md:§1` 라인 8)
-- **LLM → Portfolio**: `llm-service/app/services/portfolio_client.py:33-39` — `httpx.AsyncClient(base_url=settings.portfolio_service_url, timeout=httpx.Timeout(60.0))`.
+- **LLM → Portfolio**: `llm-service/app/services/portfolio_client.py` — `httpx.AsyncClient`에 `event_hooks={"request": [_forward_headers]}` 등록 → 호출 시 `X-Request-ID` + `Authorization` 자동 forward (H-10/L-7, §9 참조).
 - **Frontend → 3 백엔드**: `frontend/src/lib/utils/constants.ts:2-6` — `API_URLS = { AUTH: 8003, PORTFOLIO: 8001, LLM: 8002 }`.
 - **비-REST 통신 미사용**: gRPC/Kafka/Redis Streams 분석 범위 0건 (01:§2). 모든 서비스 간 호출은 동기 HTTP/JSON.
 
@@ -126,12 +126,14 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 |---|---|---|
 | 백엔드 서비스 수 | 4 | docs/agent-capability-audit/01_architecture.md:§1 |
 | 인프라 컴포넌트 수 | 2 (postgres, redis) | docker-compose.yml:6-40 |
-| 테스트 합산 | 519 (237/212/70) | 05:§1 + 본 § §4 갱신 — Phase 1 baseline 514 |
+| 테스트 합산 | 532 (248/215/70) — H-10/L-7로 +13 | 본 § §4 갱신 |
 | 등록 프롬프트 수 | 7 (v1.0) | prompt_registry.py:130-189 |
 | RAG eval 쿼리 수 | 6 (in-code) | 05:§2 라인 62 — 외부 .jsonl 이전이 향후 과제 |
 | llm-service Python | 3.11-slim | llm-service/Dockerfile:2 |
-| LLM 호출 timeout | 60초 (httpx) | portfolio_client.py:37 |
+| LLM 호출 timeout | 60초 (httpx) | portfolio_client.py |
 | CI 백엔드 병렬 stage | 3 (portfolio/llm/auth) | Jenkinsfile:36-77 |
+| JWT 검증 적용 라우터 | 17 (llm 9 + portfolio 8) | §9 + ADR 0004 |
+| 분산 트레이싱 forward | X-Request-ID + Authorization (httpx event_hooks) | §9 |
 
 ---
 
@@ -146,3 +148,30 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 5. **§4 빌드 명령** — 변경 대상 서비스의 pytest를 로컬에서 통과시킨 뒤 PR 올린다.
 6. **CLAUDE.md §4 위험 작업** — force push, db drop, secrets 노출 등은 사용자 확인 필수.
 7. **AGENTS.md 갱신** — 본 카드가 §7 지배 숫자나 §1-§6의 사실을 변경했다면 같은 PR에 본 문서 갱신 포함.
+
+---
+
+## §9. 인증 · 분산 트레이싱 (H-10 + L-7)
+
+### JWT 검증 (HS256 공유 비밀키)
+
+- 알고리즘: **HS256** — `auth-service` `JwtTokenProvider.java:41-43` (`Keys.hmacShaKeyFor`) ↔ python 서비스 `pyjwt.decode(..., algorithms=["HS256"])`. ADR 0004 참조.
+- 비밀키: `JWT_SECRET` 환경변수. 세 서비스(auth/llm/portfolio)가 동일 값 공유 (`docker-compose.yml`).
+- 검증 dependency: `app/middleware/auth.py::verify_jwt`. 라우터에 `user: dict = Depends(verify_jwt)` 1줄 추가.
+- 적용 17건 + 면제 7건 (`/health`, `/`, `/metrics`, `/tokens`) — 카드 08:§결정2/3.
+
+### X-Request-ID 자동 forward
+
+- 기존 미들웨어가 요청마다 RID 발급 (`app/middleware/logging.py`의 `request_id_var` ContextVar).
+- `httpx.AsyncClient`에 `event_hooks={"request": [_forward_headers]}` 등록 — llm → portfolio 호출 시 `X-Request-ID` + `Authorization` 자동 헤더 포함.
+- forward 정책: `_forward_headers`는 `request_id_var` / `auth_token_var` 가 set된 경우만 헤더 추가. RID는 64자 truncate.
+
+### 토큰 로그 마스킹
+
+- 두 서비스 `logging.py`에 `_mask_secrets` regex 적용 (`Bearer [...]` → `Bearer ***`).
+- JSON dump 전체에 적용해 `extra` 필드까지 커버.
+
+### 테스트 우회 패턴
+
+- `tests/conftest.py`의 autouse `_bypass_jwt` fixture가 모든 테스트에서 `verify_jwt`를 stub (기존 232+ 테스트 무수정 통과).
+- 실제 JWT 검증을 테스트하려면 `@pytest.mark.no_jwt_bypass` 마커로 opt-out (`tests/test_auth_middleware.py` 참조).

@@ -1,9 +1,10 @@
 """MLflow 실험 API 라우터"""
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 
+from app.middleware.auth import verify_jwt
 from app.services.experiment import (
     run_optimization_experiment,
     compare_covariance_methods,
@@ -128,7 +129,10 @@ class ExperimentRunResponse(BaseModel):
 # ============================================================
 
 @router.post("/optimize", response_model=OptimizeExperimentResponse)
-def run_optimize_experiment(request: OptimizeExperimentRequest):
+def run_optimize_experiment(
+    request: OptimizeExperimentRequest,
+    user: dict = Depends(verify_jwt),
+):
     """
     최적화 실험 실행
 
@@ -186,7 +190,10 @@ def run_optimize_experiment(request: OptimizeExperimentRequest):
 
 
 @router.post("/compare", response_model=CompareResponse)
-def compare_methods(request: CompareRequest):
+def compare_methods(
+    request: CompareRequest,
+    user: dict = Depends(verify_jwt),
+):
     """
     Sample vs Shrinkage 공분산 비교
 
@@ -246,7 +253,10 @@ def compare_methods(request: CompareRequest):
 
 
 @router.post("/backtest", response_model=BacktestExperimentResponse)
-def run_backtest_exp(request: BacktestExperimentRequest):
+def run_backtest_exp(
+    request: BacktestExperimentRequest,
+    user: dict = Depends(verify_jwt),
+):
     """
     백테스트 실험 실행
 
@@ -294,7 +304,8 @@ def run_backtest_exp(request: BacktestExperimentRequest):
 
 @router.get("/results", response_model=list[ExperimentRunResponse])
 def get_results(
-    limit: int = Query(default=10, ge=1, le=100, description="조회할 실험 수")
+    limit: int = Query(default=10, ge=1, le=100, description="조회할 실험 수"),
+    user: dict = Depends(verify_jwt),
 ):
     """
     최근 실험 결과 조회
@@ -333,7 +344,8 @@ def get_results(
 
 @router.get("/best")
 def get_best(
-    metric: str = Query(default="sharpe_ratio", description="기준 메트릭")
+    metric: str = Query(default="sharpe_ratio", description="기준 메트릭"),
+    user: dict = Depends(verify_jwt),
 ):
     """
     최고 성능 실험 조회

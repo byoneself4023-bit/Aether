@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import sys
 import time
 import uuid
@@ -15,6 +16,14 @@ from starlette.types import ASGIApp
 
 # Request ID를 저장하는 context variable (스레드/코루틴 안전)
 request_id_ctx: ContextVar[str] = ContextVar("request_id", default="")
+
+# Authorization Bearer 토큰 마스킹 패턴
+_BEARER_TOKEN_RE = re.compile(r"Bearer\s+[A-Za-z0-9._\-]+", re.IGNORECASE)
+
+
+def _mask_secrets(text: str) -> str:
+    """로그 메시지에서 Bearer 토큰을 마스킹"""
+    return _BEARER_TOKEN_RE.sub("Bearer ***", text)
 
 
 def get_request_id() -> str:
@@ -58,14 +67,14 @@ class StructuredLogger:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": level,
             "request_id": get_request_id() or "no-request",
-            "message": message,
+            "message": _mask_secrets(message),
         }
 
         # 추가 컨텍스트 병합
         if kwargs:
             log_entry["context"] = kwargs
 
-        return json.dumps(log_entry, ensure_ascii=False, default=str)
+        return _mask_secrets(json.dumps(log_entry, ensure_ascii=False, default=str))
 
     def info(self, message: str, **kwargs: Any) -> None:
         """INFO 레벨 로그"""

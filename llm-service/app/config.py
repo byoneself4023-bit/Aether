@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # 외부 서비스
     portfolio_service_url: str = "http://localhost:8001"
 
+    # 인증 (auth-service와 동일 HS256 비밀키 - 256bit 이상)
+    jwt_secret: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8"

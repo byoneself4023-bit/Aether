@@ -1,8 +1,9 @@
 """포트폴리오 최적화 API 라우터"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 import numpy as np
 
+from app.middleware.auth import verify_jwt
 from app.schemas.portfolio import (
     OptimizeRequest,
     OptimizeResponse,
@@ -48,7 +49,10 @@ DRIFT_RECENT_DAYS = 20
 
 
 @router.post("/optimize", response_model=OptimizeResponse)
-def optimize_portfolio(request: OptimizeRequest) -> OptimizeResponse:
+def optimize_portfolio(
+    request: OptimizeRequest,
+    user: dict = Depends(verify_jwt),
+) -> OptimizeResponse:
     """
     포트폴리오 최적화 수행 (부분 실패 허용)
 

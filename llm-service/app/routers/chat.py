@@ -3,8 +3,9 @@
 import logging
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.middleware.auth import verify_jwt
 from app.schemas.chat import (
     AnalysisResponse,
     ChatRequest,
@@ -160,7 +161,10 @@ def detect_intent(message: str) -> str:
 
 
 @router.post("", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
+async def chat(
+    request: ChatRequest,
+    user: dict = Depends(verify_jwt),
+) -> ChatResponse:
     """
     자연어 포트폴리오 분석
 
@@ -284,7 +288,10 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
-async def analyze_portfolio_endpoint(request: PortfolioAnalysisRequest) -> AnalysisResponse:
+async def analyze_portfolio_endpoint(
+    request: PortfolioAnalysisRequest,
+    user: dict = Depends(verify_jwt),
+) -> AnalysisResponse:
     """
     포트폴리오 상세 분석
 
@@ -382,7 +389,10 @@ async def analyze_portfolio_endpoint(request: PortfolioAnalysisRequest) -> Analy
 
 
 @router.post("/analyze-result", response_model=QuickAnalysisResponse)
-async def analyze_result(request: QuickAnalysisRequest) -> QuickAnalysisResponse:
+async def analyze_result(
+    request: QuickAnalysisRequest,
+    user: dict = Depends(verify_jwt),
+) -> QuickAnalysisResponse:
     """
     최적화 결과 간단 분석
 
