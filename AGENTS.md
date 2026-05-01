@@ -42,20 +42,24 @@ frontend ──HTTP──┬──> auth-service     (JWT 발급/검증)
 ## §3. 레이어 경계 (llm-service)
 
 ```text
-routers/        ──>  services/        ──>  외부 (Gemini / portfolio-service / ChromaDB)
+routers/        ──>  agents/        ──>  services/        ──>  외부 (Gemini / portfolio-service / ChromaDB)
+                       │                  │
+                       │                  ├── prompts.py / prompt_registry.py  (프롬프트 자산)
+                       │                  ├── llm.py / llm_provider.py          (LLM 호출)
+                       │                  ├── rag.py                            (인덱싱·검색·답변)
+                       │                  ├── guardrails.py / validators.py    (입출력 검증)
+                       │                  └── portfolio_client.py              (외부 HTTP)
                        │
-                       ├── prompts.py / prompt_registry.py  (프롬프트 자산)
-                       ├── llm.py / llm_provider.py          (LLM 호출)
-                       ├── rag.py                            (인덱싱·검색·답변)
-                       ├── guardrails.py / validators.py    (입출력 검증)
-                       └── portfolio_client.py              (외부 HTTP)
+                       ├── base.py            (BaseAgent 추상)
+                       ├── tools.py           (ToolRegistry + lazy init)
+                       └── portfolio_tools.py (4 도메인 함수 @tool 래퍼)
                                               ▲
-schemas/  ────────────────  middleware/ ────┘  (X-Request-ID, rate limit)
+schemas/  ────────────────────────  middleware/ ────┘  (X-Request-ID, rate limit, JWT)
 ```
 
-- **규칙**: routers는 services만 호출, services는 services를 호출 가능, schemas는 모든 레이어에서 import 가능, middleware는 main.py에 등록만 (services에서 import 금지).
-- **agents/ 디렉토리 부재**: 02:§1 — LangChain/LangGraph/AutoGen 0건. 라우터 함수가 services를 절차적으로 호출하는 함수 체인 형태. H-2 작업으로 `app/agents/` 신설 예정 (ADR 0002).
-- 근거: `llm-service/app/main.py:8-13, 64-66`, 01:§3 (depth 3 트리).
+- **규칙**: routers → agents → services → 외부 (단방향). schemas는 자유. middleware는 main.py에 등록만 (services에서 import 금지). agents는 services를 도구로 사용, services는 agents를 모른다 (의존 역전).
+- **agents/ 도입 (T-1a + H-2)**: `app/agents/` 신설 — `BaseAgent` 추상 + `ToolRegistry` + 4 도메인 도구 래퍼. T-1a는 인프라만 (chat.py 미수정), T-1b가 ReAct 통합 예정.
+- 근거: `llm-service/app/main.py:8-13, 64-66`, ADR 0002 §결정 두 번째 블록 (활성).
 
 ---
 
@@ -126,7 +130,8 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 |---|---|---|
 | 백엔드 서비스 수 | 4 | docs/agent-capability-audit/01_architecture.md:§1 |
 | 인프라 컴포넌트 수 | 2 (postgres, redis) | docker-compose.yml:6-40 |
-| 테스트 합산 | 532 (248/215/70) — H-10/L-7로 +13 | 본 § §4 갱신 |
+| 테스트 합산 | 543 (258/215/70) — T-1a로 +10 (agents 단위) + H-10/L-7로 +13 | 본 § §4 갱신 |
+| 도구 등록 (tool_registry) | 4종 (analyze_portfolio / explain_risk / summarize_backtest / get_recommendation) | §10 + ADR 0005 |
 | 등록 프롬프트 수 | 7 (v1.0) | prompt_registry.py:130-189 |
 | RAG eval 쿼리 수 | 6 (in-code) | 05:§2 라인 62 — 외부 .jsonl 이전이 향후 과제 |
 | llm-service Python | 3.11-slim | llm-service/Dockerfile:2 |
@@ -175,3 +180,48 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 
 - `tests/conftest.py`의 autouse `_bypass_jwt` fixture가 모든 테스트에서 `verify_jwt`를 stub (기존 232+ 테스트 무수정 통과).
 - 실제 JWT 검증을 테스트하려면 `@pytest.mark.no_jwt_bypass` 마커로 opt-out (`tests/test_auth_middleware.py` 참조).
+
+---
+
+## §10. Agent Architecture (T-1a + H-2)
+
+### 모듈 책임 (`llm-service/app/agents/`)
+
+| 파일 | 책임 |
+|---|---|
+| `base.py` | `BaseAgent` 추상 — `run(user_input, context) -> dict` 1 메서드 (YAGNI, T-1b ReAct 구현 / T-3 Multi-Agent 시 확장) |
+| `tools.py` | `ToolRegistry` + `get_tool_registry()` lazy init + `_register_default_tools()` — prompt_registry와 동일 패턴 (자기 일관성) |
+| `portfolio_tools.py` | 4 도메인 함수 @tool 래퍼 — `services/llm.py` 원본을 0 변경 호출 |
+
+### Lazy init 패턴 (prompt_registry 미러)
+
+```python
+_tool_registry: ToolRegistry | None = None
+
+def get_tool_registry() -> ToolRegistry:
+    global _tool_registry
+    if _tool_registry is None:
+        _tool_registry = ToolRegistry()
+        _register_default_tools(_tool_registry)
+    return _tool_registry
+```
+
+- 테스트에서 `_tool_registry = None` reset 가능 (autouse fixture로 상태 공유 차단).
+- import 사이드 이펙트 회피 — 도구 등록은 첫 `get_tool_registry()` 호출 시.
+
+### YAGNI 정책 — 미도입 항목
+
+T-3 Multi-Agent 진입 시 도입:
+- Supervisor 패턴 (멀티 에이전트 조율)
+- Subgraph 추상 (LangGraph 고급)
+- Memory / Checkpointer (상태 저장)
+
+**T-1a는 인프라만** — chat.py / services/llm.py **0 변경**. T-1b가 `chat.py:331-349` 절차적 4 호출을 ReAct 1 호출로 통합.
+
+### 의존성
+
+- `langgraph>=0.2` (1.1.10 측정)
+- `langchain-google-genai>=2.0` (4.2.2)
+- `langchain-core>=0.3` (1.3.2)
+
+상세 채택 사유는 ADR 0005 참조.
