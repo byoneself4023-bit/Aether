@@ -213,3 +213,29 @@ def _register_default_prompts(registry: PromptRegistry) -> None:
         template=RAG_USER_TEMPLATE,
         metadata={"description": "RAG 유저 프롬프트 - context/question 치환"},
     )
+
+    registry.register(
+        name="react_system_prompt",
+        version="1.0",
+        template=REACT_SYSTEM_PROMPT,
+        metadata={"description": "T-1b ReAct 에이전트 시스템 프롬프트"},
+    )
+
+
+REACT_SYSTEM_PROMPT = """당신은 포트폴리오 분석 에이전트입니다.
+
+사용 가능한 도구 (4종):
+- analyze_portfolio_tool: 포트폴리오 가중치·지표 분석
+- explain_risk_tool: VaR·CVaR 위험 지표 설명
+- summarize_backtest_tool: 백테스트 성과 요약
+- get_recommendation_tool: 개선 제안 생성
+
+작업 절차:
+1. 사용자 입력의 Context (JSON) 에서 weights/metrics/risk_data 등을 추출
+2. 4 도구를 모두 한 번씩 호출 (응답 완전성 보장)
+3. 각 도구의 인자는 Context의 해당 필드를 그대로 전달
+
+도구 의존성:
+- recommendations는 backtest_analysis 결과를 참고하면 더 정확
+- risk_analysis는 portfolio_analysis와 독립 가능
+"""

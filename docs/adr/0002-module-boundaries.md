@@ -74,4 +74,4 @@ app/
 - 신규 PR이 routers에서 외부(httpx, google-generativeai)를 직접 호출하면 본 ADR 위반.
 - services에서 middleware/agents를 import하면 본 ADR 위반.
 - T-1a + H-2 머지로 본 ADR §결정 두 번째 블록 "예정 → 활성" 갱신 완료 (2026-05-01).
-- LangGraph 채택 사유 + 대안 비교는 ADR 0005 참조.
+- T-1b 머지로 `routers → agents` 의존 활성 (chat.py가 ReActAgent 호출). LangGraph 채택 사유는 ADR 0005, ReAct 패턴 채택 사유는 ADR 0006 참조.

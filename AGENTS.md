@@ -18,6 +18,7 @@ frontend ──HTTP──┬──> auth-service     (JWT 발급/검증)
 
 - **요점**: `llm-service`는 `auth-service`와 **직접 통합되지 않는다**. 인증은 frontend가 auth-service로부터 JWT를 받아 portfolio/llm 호출 시 헤더에 동봉하는 방식. (`docs/agent-capability-audit/01_architecture.md:§1` 라인 8)
 - **LLM → Portfolio**: `llm-service/app/services/portfolio_client.py` — `httpx.AsyncClient`에 `event_hooks={"request": [_forward_headers]}` 등록 → 호출 시 `X-Request-ID` + `Authorization` 자동 forward (H-10/L-7, §9 참조).
+- **chat.py → ReActAgent → 4 도구**: `chat.py:331-356`에서 `settings.use_react_agent`가 True면 `ReActAgent.run()` 1 호출 (T-1b). 모델이 4 도구(analyze/risk/backtest/recommend)의 호출 순서 자율 판단. `USE_REACT_AGENT=false` env로 절차적 호출 fallback (§10 참조).
 - **Frontend → 3 백엔드**: `frontend/src/lib/utils/constants.ts:2-6` — `API_URLS = { AUTH: 8003, PORTFOLIO: 8001, LLM: 8002 }`.
 - **비-REST 통신 미사용**: gRPC/Kafka/Redis Streams 분석 범위 0건 (01:§2). 모든 서비스 간 호출은 동기 HTTP/JSON.
 
@@ -130,8 +131,10 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 |---|---|---|
 | 백엔드 서비스 수 | 4 | docs/agent-capability-audit/01_architecture.md:§1 |
 | 인프라 컴포넌트 수 | 2 (postgres, redis) | docker-compose.yml:6-40 |
-| 테스트 합산 | 543 (258/215/70) — T-1a로 +10 (agents 단위) + H-10/L-7로 +13 | 본 § §4 갱신 |
+| 테스트 합산 | 555 (270/215/70) — T-1b로 +12 (ReAct 단위 + 통합) | 본 § §4 갱신 |
 | 도구 등록 (tool_registry) | 4종 (analyze_portfolio / explain_risk / summarize_backtest / get_recommendation) | §10 + ADR 0005 |
+| 등록 프롬프트 수 | 8 (v1.0) — T-1b로 react_system_prompt 추가 | prompt_registry.py + ADR 0006 |
+| chat.py:/api/chat/analyze LLM 호출 | **ReAct 1 호출** (USE_REACT_AGENT=true 기본) / 절차적 4 호출 (fallback) | §10 + ADR 0006 |
 | 등록 프롬프트 수 | 7 (v1.0) | prompt_registry.py:130-189 |
 | RAG eval 쿼리 수 | 6 (in-code) | 05:§2 라인 62 — 외부 .jsonl 이전이 향후 과제 |
 | llm-service Python | 3.11-slim | llm-service/Dockerfile:2 |
@@ -192,6 +195,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | `base.py` | `BaseAgent` 추상 — `run(user_input, context) -> dict` 1 메서드 (YAGNI, T-1b ReAct 구현 / T-3 Multi-Agent 시 확장) |
 | `tools.py` | `ToolRegistry` + `get_tool_registry()` lazy init + `_register_default_tools()` — prompt_registry와 동일 패턴 (자기 일관성) |
 | `portfolio_tools.py` | 4 도메인 함수 @tool 래퍼 — `services/llm.py` 원본을 0 변경 호출 |
+| `react_agent.py` (T-1b) | `ReActAgent(BaseAgent)` — `langgraph.prebuilt.create_react_agent` + `_extract_tool_results` 어댑터 (ToolMessage → AnalysisResponse 4 필드 매핑) |
 
 ### Lazy init 패턴 (prompt_registry 미러)
 
@@ -216,7 +220,24 @@ T-3 Multi-Agent 진입 시 도입:
 - Subgraph 추상 (LangGraph 고급)
 - Memory / Checkpointer (상태 저장)
 
-**T-1a는 인프라만** — chat.py / services/llm.py **0 변경**. T-1b가 `chat.py:331-349` 절차적 4 호출을 ReAct 1 호출로 통합.
+**T-1a는 인프라만** — chat.py / services/llm.py **0 변경**. **T-1b 통합 완료** — `chat.py:331-356`이 `if settings.use_react_agent:` 분기로 ReAct 1 호출 (모델이 4 도구 자율 판단) + fallback 절차적 호출 보존. `USE_REACT_AGENT=false` env로 즉시 롤백 가능.
+
+### Tool 함수명 → AnalysisResponse 필드 매핑 (T-1b 어댑터)
+
+`react_agent.py::_TOOL_NAME_TO_FIELD`:
+
+| Tool name | AnalysisResponse 필드 |
+|---|---|
+| `analyze_portfolio_tool` | `portfolio_analysis` |
+| `explain_risk_tool` | `risk_analysis` |
+| `summarize_backtest_tool` | `backtest_analysis` |
+| `get_recommendation_tool` | `recommendation` |
+
+ToolMessage.content는 JSON 문자열 또는 dict — 어댑터가 try/except로 분기 처리.
+
+### 테스트 우회 패턴 (T-1b)
+
+`tests/conftest.py`의 autouse `_disable_react_agent` fixture가 `settings.use_react_agent = False`로 강제 → 기존 258 mock 테스트 호환. ReAct 검증은 `@pytest.mark.use_react_agent` 마커로 opt-in.
 
 ### 의존성
 

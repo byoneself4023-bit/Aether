@@ -20,6 +20,10 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers",
         "no_jwt_bypass: do not stub verify_jwt for this test (use real verification)",
     )
+    config.addinivalue_line(
+        "markers",
+        "use_react_agent: enable ReAct path (USE_REACT_AGENT=True) for this test (T-1b)",
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -35,6 +39,19 @@ def _bypass_jwt(request: pytest.FixtureRequest):
     }
     yield
     app.dependency_overrides.pop(verify_jwt, None)
+
+
+@pytest.fixture(autouse=True)
+def _disable_react_agent(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch):
+    """기본 use_react_agent=False - 기존 258 mock 테스트 호환. opt-in: 'use_react_agent' marker."""
+    from app.config import get_settings
+
+    settings = get_settings()
+    if request.node.get_closest_marker("use_react_agent"):
+        monkeypatch.setattr(settings, "use_react_agent", True)
+    else:
+        monkeypatch.setattr(settings, "use_react_agent", False)
+    yield
 
 
 @pytest.fixture

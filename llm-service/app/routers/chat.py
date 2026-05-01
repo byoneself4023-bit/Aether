@@ -5,6 +5,8 @@ import re
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.agents.react_agent import ReActAgent
+from app.config import get_settings
 from app.middleware.auth import verify_jwt
 from app.schemas.chat import (
     AnalysisResponse,
@@ -39,6 +41,7 @@ from app.services.prompts import get_system_prompt, portfolio_analysis_prompt
 from app.services.rag import query_with_llm
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -327,33 +330,53 @@ async def analyze_portfolio_endpoint(
         weights = optimization["weights"]
         metrics = optimization["metrics"]
 
-        # LLM 분석들
-        portfolio_analysis = analyze_portfolio(
-            weights=weights,
-            metrics=metrics,
-        )
+        # LLM 분석들 - T-1b: ReAct 1 호출 또는 절차적 4 호출 fallback
+        if settings.use_react_agent:
+            react_agent = ReActAgent()
+            react_results = await react_agent.run(
+                user_input=f"포트폴리오 분석: tickers={tickers}, strategy={strategy}",
+                context={
+                    "weights": weights,
+                    "metrics": metrics,
+                    "risk_data": risk["risk_summary"],
+                    "investment_amount": request.investment_amount,
+                    "strategy": strategy,
+                    "period": "5y",
+                    "tickers": tickers,
+                    "final_weights": backtest.get("final_weights"),
+                },
+            )
+            portfolio_analysis = react_results.get("portfolio_analysis", {})
+            risk_analysis = react_results.get("risk_analysis", {})
+            backtest_analysis = react_results.get("backtest_analysis", {})
+            recommendation = react_results.get("recommendation", {})
+        else:
+            portfolio_analysis = analyze_portfolio(
+                weights=weights,
+                metrics=metrics,
+            )
 
-        risk_analysis = explain_risk(
-            risk_data=risk["risk_summary"],
-            investment_amount=request.investment_amount,
-        )
+            risk_analysis = explain_risk(
+                risk_data=risk["risk_summary"],
+                investment_amount=request.investment_amount,
+            )
 
-        backtest_analysis = summarize_backtest(
-            metrics=backtest["metrics"],
-            strategy=strategy,
-            period="5y",
-            tickers=tickers,
-            final_weights=backtest.get("final_weights"),
-        )
+            backtest_analysis = summarize_backtest(
+                metrics=backtest["metrics"],
+                strategy=strategy,
+                period="5y",
+                tickers=tickers,
+                final_weights=backtest.get("final_weights"),
+            )
 
-        recommendation = get_recommendation(
-            current_portfolio=weights,
-            metrics=metrics,
-            risk_data={
-                "var_95": risk["risk_summary"]["var_95_montecarlo"],
-                "cvar_99": risk["risk_summary"]["cvar_99"],
-            },
-        )
+            recommendation = get_recommendation(
+                current_portfolio=weights,
+                metrics=metrics,
+                risk_data={
+                    "var_95": risk["risk_summary"]["var_95_montecarlo"],
+                    "cvar_99": risk["risk_summary"]["cvar_99"],
+                },
+            )
 
         # 포트폴리오 데이터
         portfolio_data = PortfolioData(
