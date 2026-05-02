@@ -135,6 +135,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | 도구 등록 (tool_registry) | 4종 (analyze_portfolio / explain_risk / summarize_backtest / get_recommendation) | §10 + ADR 0005 |
 | 등록 프롬프트 수 | 8 (v1.0) — T-1b로 react_system_prompt 추가 | prompt_registry.py + ADR 0006 |
 | chat.py:/api/chat/analyze LLM 호출 | **ReAct 1 호출** (USE_REACT_AGENT=true 기본) / 절차적 4 호출 (fallback) | §10 + ADR 0006 |
+| Gemini SDK | google-genai 1.74 (legacy google-generativeai 제거) — H-6 디벨롭 | requirements.txt + ADR 0007 |
 | RAG eval 쿼리 수 | 6 (in-code) | 05:§2 라인 62 — 외부 .jsonl 이전이 향후 과제 |
 | llm-service Python | 3.11-slim | llm-service/Dockerfile:2 |
 | LLM 호출 timeout | 60초 (httpx) | portfolio_client.py |
@@ -243,5 +244,6 @@ ToolMessage.content는 JSON 문자열 또는 dict — 어댑터가 try/except로
 - `langgraph>=0.2` (1.1.10 측정)
 - `langchain-google-genai>=2.0` (4.2.2)
 - `langchain-core>=0.3` (1.3.2)
+- `google-genai` (1.74, langchain-google-genai 전이의존 — H-6 디벨롭으로 legacy `google-generativeai` 제거)
 
-상세 채택 사유는 ADR 0005 참조.
+상세 채택 사유는 ADR 0005 (LangGraph) + ADR 0007 (genai SDK 마이그레이션) 참조.

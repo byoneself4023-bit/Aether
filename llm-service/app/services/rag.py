@@ -6,7 +6,8 @@ from typing import Any
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
-import google.generativeai as genai
+from google import genai
+from google.genai import types as genai_types
 
 from app.config import get_settings
 from app.services.llm import call_llm, LLMError
@@ -19,6 +20,16 @@ settings = get_settings()
 _chroma_client: chromadb.ClientAPI | None = None
 _collection: chromadb.Collection | None = None
 _initialized: bool = False
+_genai_client: genai.Client | None = None
+
+
+def _get_genai_client() -> genai.Client:
+    global _genai_client
+    if _genai_client is None:
+        if not settings.google_api_key:
+            raise LLMError("GOOGLE_API_KEY not configured")
+        _genai_client = genai.Client(api_key=settings.google_api_key)
+    return _genai_client
 
 
 # ============================================================
@@ -26,51 +37,33 @@ _initialized: bool = False
 # ============================================================
 
 def _get_embedding(text: str) -> list[float]:
-    """
-    Gemini 임베딩 생성
-
-    Args:
-        text: 임베딩할 텍스트
-
-    Returns:
-        임베딩 벡터 (768차원)
-    """
+    """Gemini 임베딩 생성 (768차원, retrieval_document)."""
     if not settings.google_api_key:
         raise LLMError("GOOGLE_API_KEY not configured")
 
-    genai.configure(api_key=settings.google_api_key)
-
-    result = genai.embed_content(
+    client = _get_genai_client()
+    result = client.models.embed_content(
         model=settings.embedding_model,
-        content=text,
-        task_type="retrieval_document",
+        contents=text,
+        config=genai_types.EmbedContentConfig(task_type="retrieval_document"),
     )
 
-    return result["embedding"]
+    return list(result.embeddings[0].values)
 
 
 def _get_query_embedding(text: str) -> list[float]:
-    """
-    쿼리용 Gemini 임베딩 생성
-
-    Args:
-        text: 쿼리 텍스트
-
-    Returns:
-        임베딩 벡터
-    """
+    """쿼리용 Gemini 임베딩 생성 (retrieval_query)."""
     if not settings.google_api_key:
         raise LLMError("GOOGLE_API_KEY not configured")
 
-    genai.configure(api_key=settings.google_api_key)
-
-    result = genai.embed_content(
+    client = _get_genai_client()
+    result = client.models.embed_content(
         model=settings.embedding_model,
-        content=text,
-        task_type="retrieval_query",
+        contents=text,
+        config=genai_types.EmbedContentConfig(task_type="retrieval_query"),
     )
 
-    return result["embedding"]
+    return list(result.embeddings[0].values)
 
 
 # ============================================================

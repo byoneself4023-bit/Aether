@@ -1,4 +1,4 @@
-"""Major #6: LLM Provider 추상화 테스트 (H-6: structured output)"""
+"""Major #6: LLM Provider 추상화 테스트 (H-6: structured output, google-genai SDK)"""
 
 from unittest.mock import MagicMock, patch
 
@@ -19,6 +19,14 @@ class _SampleResponse(BaseModel):
     score: int
 
 
+def _make_mock_client(response_text: str) -> MagicMock:
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.text = response_text
+    mock_client.models.generate_content.return_value = mock_response
+    return mock_client
+
+
 class TestLLMProviderProtocol:
     """LLMProvider Protocol 테스트"""
 
@@ -33,21 +41,19 @@ class TestLLMProviderProtocol:
 class TestGeminiProviderGenerate:
     """generate() 텍스트 생성"""
 
-    @patch("app.services.llm_provider.GeminiProvider._get_model")
+    @patch("app.services.llm_provider.GeminiProvider._ensure_client")
     @patch("app.services.llm_provider.get_settings")
-    def test_generate_success(self, mock_get_settings, mock_get_model):
+    def test_generate_success(self, mock_get_settings, mock_ensure):
         settings = MagicMock()
         settings.google_api_key = "test-key"
         settings.llm_temperature = 0.7
         settings.llm_max_tokens = 2048
         settings.llm_timeout = 30
+        settings.llm_model = "gemini-2.0-flash"
         mock_get_settings.return_value = settings
 
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = "Generated text"
-        mock_model.generate_content.return_value = mock_response
-        mock_get_model.return_value = mock_model
+        mock_client = _make_mock_client("Generated text")
+        mock_ensure.return_value = mock_client
 
         provider = GeminiProvider()
         provider._settings = settings
@@ -71,22 +77,19 @@ class TestGeminiProviderGenerate:
 class TestGeminiProviderGenerateStructured:
     """generate_structured() Pydantic 강제 출력 (H-6)"""
 
-    @patch("app.services.llm_provider.genai.GenerativeModel")
     @patch("app.services.llm_provider.GeminiProvider._ensure_client")
     @patch("app.services.llm_provider.get_settings")
-    def test_generate_structured_success(self, mock_get_settings, _mock_ensure, mock_model_cls):
+    def test_generate_structured_success(self, mock_get_settings, mock_ensure):
         settings = MagicMock()
         settings.google_api_key = "test-key"
         settings.llm_temperature = 0.3
         settings.llm_max_tokens = 4096
         settings.llm_timeout = 30
+        settings.llm_model = "gemini-2.0-flash"
         mock_get_settings.return_value = settings
 
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = '{"summary": "ok", "score": 7}'
-        mock_model.generate_content.return_value = mock_response
-        mock_model_cls.return_value = mock_model
+        mock_client = _make_mock_client('{"summary": "ok", "score": 7}')
+        mock_ensure.return_value = mock_client
 
         provider = GeminiProvider()
         provider._settings = settings
@@ -101,28 +104,25 @@ class TestGeminiProviderGenerateStructured:
         assert result.summary == "ok"
         assert result.score == 7
 
-        config = mock_model_cls.call_args.kwargs["generation_config"]
+        config = mock_client.models.generate_content.call_args.kwargs["config"]
         assert config.response_mime_type == "application/json"
         assert config.response_schema is _SampleResponse
 
-    @patch("app.services.llm_provider.genai.GenerativeModel")
     @patch("app.services.llm_provider.GeminiProvider._ensure_client")
     @patch("app.services.llm_provider.get_settings")
     def test_generate_structured_validation_error_retries_then_raises(
-        self, mock_get_settings, _mock_ensure, mock_model_cls
+        self, mock_get_settings, mock_ensure
     ):
         settings = MagicMock()
         settings.google_api_key = "test-key"
         settings.llm_temperature = 0.3
         settings.llm_max_tokens = 4096
         settings.llm_timeout = 30
+        settings.llm_model = "gemini-2.0-flash"
         mock_get_settings.return_value = settings
 
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = '{"summary": "ok"}'
-        mock_model.generate_content.return_value = mock_response
-        mock_model_cls.return_value = mock_model
+        mock_client = _make_mock_client('{"summary": "ok"}')
+        mock_ensure.return_value = mock_client
 
         provider = GeminiProvider()
         provider._settings = settings
@@ -134,7 +134,7 @@ class TestGeminiProviderGenerateStructured:
                 use_cache=False,
             )
 
-        assert mock_model.generate_content.call_count == 3
+        assert mock_client.models.generate_content.call_count == 3
 
     @patch("app.services.llm_provider.get_settings")
     def test_generate_structured_without_api_key(self, mock_get_settings):
@@ -148,22 +148,19 @@ class TestGeminiProviderGenerateStructured:
         with pytest.raises(LLMError, match="GOOGLE_API_KEY not configured"):
             provider.generate_structured("Test", response_model=_SampleResponse)
 
-    @patch("app.services.llm_provider.genai.GenerativeModel")
     @patch("app.services.llm_provider.GeminiProvider._ensure_client")
     @patch("app.services.llm_provider.get_settings")
-    def test_generate_structured_passes_system_prompt(self, mock_get_settings, _mock_ensure, mock_model_cls):
+    def test_generate_structured_passes_system_prompt(self, mock_get_settings, mock_ensure):
         settings = MagicMock()
         settings.google_api_key = "test-key"
         settings.llm_temperature = 0.3
         settings.llm_max_tokens = 4096
         settings.llm_timeout = 30
+        settings.llm_model = "gemini-2.0-flash"
         mock_get_settings.return_value = settings
 
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = '{"summary": "x", "score": 1}'
-        mock_model.generate_content.return_value = mock_response
-        mock_model_cls.return_value = mock_model
+        mock_client = _make_mock_client('{"summary": "x", "score": 1}')
+        mock_ensure.return_value = mock_client
 
         provider = GeminiProvider()
         provider._settings = settings
@@ -175,7 +172,7 @@ class TestGeminiProviderGenerateStructured:
             use_cache=False,
         )
 
-        full_prompt = mock_model.generate_content.call_args.args[0]
+        full_prompt = mock_client.models.generate_content.call_args.kwargs["contents"]
         assert "System prompt" in full_prompt
         assert "User prompt" in full_prompt
 
