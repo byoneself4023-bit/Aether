@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Protocol, runtime_checkable
 
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
+from google import genai
+from google.genai import types as genai_types
 from pydantic import BaseModel, ValidationError
 from tenacity import (
     retry,
@@ -64,22 +64,19 @@ class GeminiProvider:
 
     def __init__(self) -> None:
         self._settings = get_settings()
-        self._client_initialized = False
+        self._client: genai.Client | None = None
 
-    def _ensure_client(self) -> None:
-        if not self._client_initialized and self._settings.google_api_key:
-            genai.configure(api_key=self._settings.google_api_key)
-            self._client_initialized = True
-
-    def _get_model(self) -> Any:
-        self._ensure_client()
-        return genai.GenerativeModel(
-            model_name=self._settings.llm_model,
-            generation_config=GenerationConfig(
-                temperature=self._settings.llm_temperature,
-                max_output_tokens=self._settings.llm_max_tokens,
-            ),
-        )
+    def _ensure_client(self) -> genai.Client:
+        if self._client is None:
+            if not self._settings.google_api_key:
+                raise LLMError("GOOGLE_API_KEY not configured")
+            self._client = genai.Client(
+                api_key=self._settings.google_api_key,
+                http_options=genai_types.HttpOptions(
+                    timeout=int(self._settings.llm_timeout * 1000),
+                ),
+            )
+        return self._client
 
     @retry(
         stop=stop_after_attempt(3),
@@ -106,25 +103,23 @@ class GeminiProvider:
                 return cached  # type: ignore[return-value]
 
         try:
-            model = self._get_model()
+            client = self._ensure_client()
 
             full_prompt = prompt
             if system_prompt:
                 full_prompt = f"{system_prompt}\n\n---\n\n{prompt}"
 
-            gen_config = None
-            if temperature is not None or max_tokens is not None:
-                gen_config = GenerationConfig(
-                    temperature=temperature or self._settings.llm_temperature,
-                    max_output_tokens=max_tokens or self._settings.llm_max_tokens,
-                )
+            config = genai_types.GenerateContentConfig(
+                temperature=temperature if temperature is not None else self._settings.llm_temperature,
+                max_output_tokens=max_tokens if max_tokens is not None else self._settings.llm_max_tokens,
+            )
 
             logger.debug(f"Calling Gemini with prompt length: {len(full_prompt)}")
 
-            response = model.generate_content(
-                full_prompt,
-                generation_config=gen_config,
-                request_options={"timeout": self._settings.llm_timeout},
+            response = client.models.generate_content(
+                model=self._settings.llm_model,
+                contents=full_prompt,
+                config=config,
             )
 
             if not response.text:
@@ -184,24 +179,23 @@ class GeminiProvider:
         temp = temperature if temperature is not None else 0.3
 
         try:
-            self._ensure_client()
-            model = genai.GenerativeModel(
-                model_name=self._settings.llm_model,
-                generation_config=GenerationConfig(
-                    temperature=temp,
-                    max_output_tokens=self._settings.llm_max_tokens,
-                    response_mime_type="application/json",
-                    response_schema=response_model,
-                ),
-            )
+            client = self._ensure_client()
 
             full_prompt = prompt
             if system_prompt:
                 full_prompt = f"{system_prompt}\n\n---\n\n{prompt}"
 
-            response = model.generate_content(
-                full_prompt,
-                request_options={"timeout": self._settings.llm_timeout},
+            config = genai_types.GenerateContentConfig(
+                temperature=temp,
+                max_output_tokens=self._settings.llm_max_tokens,
+                response_mime_type="application/json",
+                response_schema=response_model,
+            )
+
+            response = client.models.generate_content(
+                model=self._settings.llm_model,
+                contents=full_prompt,
+                config=config,
             )
 
             if not response.text:
