@@ -29,7 +29,7 @@
 
 ---
 
-## 📋 누적 문제 16건 (2026-04-28 ~ 2026-05-03)
+## 📋 누적 문제 18건 (2026-04-28 ~ 2026-05-05)
 
 ### 카테고리 A — 작업 트리 위생 (3건)
 
@@ -223,7 +223,7 @@ else:
 
 ---
 
-### 카테고리 D — 외부 SDK 마이그레이션 (3건, 모두 H-6 디벨롭)
+### 카테고리 D — 외부 SDK 마이그레이션 (4건)
 
 #### 문제 11 (신규): FutureWarning 무시 패턴
 
@@ -290,6 +290,38 @@ else:
    # legacy 호출자 0 변경 보장
    return list(result.embeddings[0].values)  # 신규 → list[float] (호출자 시그니처 보존)
    ```
+
+#### 문제 18 (신규): 신규 패키지 설치 시 의존성 베이스라인 강제 업그레이드 미예측
+
+**발생 카드**: T-2 본격 PR (Blocked, ADR 0008)
+
+**증상**:
+- `pip install 'mcp>=1.0,<2.0'` 시도 → mcp 1.27.0이 anyio `>=4.5` / starlette `>=0.49.1` (sse-starlette 경유) 강제 → portfolio-service의 fastapi 0.104.1과 충돌
+- 설치 후 `from app.main import app` → `TypeError: Router.__init__() got an unexpected keyword argument 'on_startup'` (starlette 1.0.0 비호환)
+- plan 단계에서 "Pydantic 2.5.3 호환 OK = 충돌 위험 LOW" 판정 → **anyio/starlette 차원을 측정 누락**
+- 결과: 본격 PR 보류, 선행 카드 (fastapi 업그레이드) 분리 의무
+
+**사전 예방**:
+1. 신규 패키지 추가 전 **`pip install --dry-run` 의무**:
+   ```bash
+   .venv/bin/pip install --dry-run '<new-pkg>' 2>&1 | grep -E "Would install|Would upgrade"
+   ```
+2. 강제 업그레이드 후보 패키지 vs 베이스라인 핵심 의존성 매트릭스 작성:
+   - **검사 대상**: anyio, starlette, httpx, pyjwt, pydantic, uvicorn, sqlalchemy, fastapi (서비스별 핵심 4-6개)
+   - 한 줄이라도 충돌 → 차단
+3. 충돌 발견 시 분기:
+   - 베이스라인 업그레이드 가능 (별도 카드) → **선행 카드** 분리, ADR Blocked
+   - 신규 패키지 버전 다운그레이드 가능 → 호환 버전 핀
+   - 둘 다 불가 → 본격 PR 폐기, 다른 패키지 검토
+4. **plan의 "충돌 위험 LOW" 판정은 다차원 매트릭스 후에만**:
+   ```
+   plan 작성 시:
+   - pydantic ✓
+   - anyio ?  ← 이 줄 누락 시 차단
+   - starlette ? ← 이 줄 누락 시 차단
+   - httpx ?
+   ```
+5. 가드 G2 (Reversibility) 보호: 베이스라인 업그레이드는 반드시 별도 카드. 신규 도구 PR 안에 베이스라인 업그레이드 끼워넣지 말 것.
 
 ---
 
@@ -444,6 +476,11 @@ python -c "from {pkg} import client; r = client.call(...); print(type(r), dir(r)
   ```bash
   pytest tests/ 2>&1 | grep -i "futurewarning\|deprecation" | head -5
   ```
+- [ ] **신규 패키지 추가 전 베이스라인 강제 업그레이드 매트릭스** (문제 18 차단):
+  ```bash
+  .venv/bin/pip install --dry-run '<new-pkg>' 2>&1 | grep -E "Would install|Would upgrade"
+  ```
+  핵심 의존성(anyio / starlette / httpx / pyjwt / pydantic / uvicorn / fastapi) 충돌 0건 확인. 1줄이라도 충돌 → 선행 카드 분리 의무.
 
 ### D. 5 가드 강제 (메모리 #22 — 문제 9 차단)
 
@@ -658,7 +695,7 @@ else:
 
 면접에서 어필 한 줄:
 
-> *"Aether 프로젝트에서 발생한 16건의 작업 문제를 카테고리별로 정리하고, 종합 체크리스트(A-G) + 자기 일관성 패턴 5종 + 메모리 통합 가이드(4 레이어)로 사전 예방 시스템을 구축했습니다. 새 개발자가 이 문서만 보고도 같은 실수 반복을 차단할 수 있고, Claude Code가 매 카드 plan 시 자동 참조해 학습 누적합니다."*
+> *"Aether 프로젝트에서 발생한 18건의 작업 문제를 카테고리별로 정리하고, 종합 체크리스트(A-G) + 자기 일관성 패턴 5종 + 메모리 통합 가이드(4 레이어)로 사전 예방 시스템을 구축했습니다. 새 개발자가 이 문서만 보고도 같은 실수 반복을 차단할 수 있고, Claude Code가 매 카드 plan 시 자동 참조해 학습 누적합니다."*
 
 ---
 
@@ -667,6 +704,7 @@ else:
 | 일자 | 갱신 내용 | 갱신 사유 |
 |---|---|---|
 | 2026-05-03 (v1) | 누적 문제 9건 + 체크리스트 A-F + 자기 일관성 5종 | 최초 작성 |
-| 2026-05-03 (v2 / 본 문서) | **누락 7건 추가 (10·11·12·13·14·15·16·17) + 카테고리 7개 분류 + 메모리 통합 가이드 + 적용 순서 명시** | 검수 결과 누락 발견 |
+| 2026-05-03 (v2) | **누락 7건 추가 (10·11·12·13·14·15·16·17) + 카테고리 7개 분류 + 메모리 통합 가이드 + 적용 순서 명시** | 검수 결과 누락 발견 |
+| 2026-05-05 (v3 / 본 문서) | **문제 18 추가 — mcp 패키지 설치 시 anyio/starlette 강제 업그레이드가 fastapi 0.104.1 깨뜨림. 체크리스트 C에 `pip install --dry-run` 의존성 매트릭스 항목 추가** | T-2 본격 PR Blocked → 선행 카드 분리, ADR 0008 Blocked 전환 |
 
-**다음 갱신 예정**: T-2 (MCP) Spike 및 본격 PR 진행 후 신규 문제 발견 시
+**다음 갱신 예정**: 선행 카드 (fastapi 업그레이드) 머지 + T-2 본격 PR 재개 후 신규 문제 발견 시
