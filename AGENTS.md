@@ -142,6 +142,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | CI 백엔드 병렬 stage | 3 (portfolio/llm/auth) | Jenkinsfile:36-77 |
 | JWT 검증 적용 라우터 | 17 (llm 9 + portfolio 8) | §9 + ADR 0004 |
 | 분산 트레이싱 forward | X-Request-ID + Authorization (httpx event_hooks) | §9 |
+| MCP 서버 도구 | 4종 (analyze_portfolio / compute_risk / run_backtest / get_recommendation, stdio transport) | docs/adr/0008-mcp-server-adoption.md + portfolio-service/app/mcp_server.py |
 
 ---
 
@@ -247,3 +248,40 @@ ToolMessage.content는 JSON 문자열 또는 dict — 어댑터가 try/except로
 - `google-genai` (1.74, langchain-google-genai 전이의존 — H-6 디벨롭으로 legacy `google-generativeai` 제거)
 
 상세 채택 사유는 ADR 0005 (LangGraph) + ADR 0007 (genai SDK 마이그레이션) 참조.
+
+---
+
+## §11. MCP 서버 (T-2)
+
+### 외부 노출 채널
+
+`portfolio-service/app/mcp_server.py`에서 `Server("aether-portfolio")` 인스턴스가 stdio transport로 4 도메인 도구 외부 노출. 외부 LLM (Claude Desktop / Cursor / 외부 LangChain 에이전트)이 subprocess launch로 직접 호출.
+
+호출 체인: `외부 LLM → stdio subprocess → mcp_server.py → app/services/* (라우터 우회, services 직접 호출)`.
+
+인증: subprocess launch = 운영자 신뢰 (HTTP 헤더 X). 운영급 인증은 후속 카드 T-2c (HTTP/SSE transport)에서.
+
+### 4 도구 매핑
+
+| MCP Tool | 호출 대상 | 반환 |
+|---|---|---|
+| `analyze_portfolio` | `services/optimizer.py:optimize_max_sharpe` | `PortfolioMetrics` |
+| `compute_risk` | `services/risk.py:risk_summary` | `RiskSummary` |
+| `run_backtest` | `services/backtest.py:walk_forward_backtest` | `BacktestResult` |
+| `get_recommendation` | `services/drift_detector.py:analyze_drift` | `CombinedDriftAnalysis` |
+
+### L-7 X-Request-ID 통합 (옵션 A)
+
+`call_tool` 핸들러가 `arguments.pop("_request_id")` → `request_id_ctx.set()` → finally `token.reset()`. inputSchema 미노출 (외부 LLM 모름, 자동 RID 생성). 기존 `RequestLoggingMiddleware`와 자기 일관성.
+
+### `_serialize()` 어댑터
+
+dataclass / numpy / pandas / Enum / Pydantic → JSON dict 8 분기 recursion. `services/*` 도메인 함수 0 변경 보존.
+
+### entrypoint
+
+```bash
+PYTHONPATH=/path/to/portfolio-service python -m app.mcp_server
+```
+
+상세 채택 사유는 ADR 0008 (MCP 서버 채택) + TECH_DECISIONS.md §5 (MCP 결정 근거) 참조.

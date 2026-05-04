@@ -17,3 +17,6 @@ pytest==7.4.3
 pytest-asyncio==0.21.1
 anyio==4.13.0
 starlette==0.48.0
+mcp==1.27.0
+sse-starlette==3.0.3
+httpx-sse==0.4.3
