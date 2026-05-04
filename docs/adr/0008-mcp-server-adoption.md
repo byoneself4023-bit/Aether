@@ -132,7 +132,7 @@ T-2 본격 PR을 위해 portfolio-service venv에 `mcp>=1.0,<2.0` 설치 시도 
 
 H-X 회귀 검증: `pytest tests/` **215 passed** (회귀 0). `from app.main import app` 정상.
 
-### 측정 4단계 결과 (AETHER_WORK_PATTERNS 문제 18 첫 적용)
+### 측정 4단계 결과 (WORK_PATTERNS 문제 18 첫 적용)
 
 1. **dry-run 매트릭스**: `pip install --dry-run 'fastapi>=0.115,<0.120' 'mcp>=1.0,<2.0'` → 다운그레이드/충돌 0건
 2. **다차원 의존성**: anyio / starlette / httpx / pyjwt / uvicorn / pydantic 6 차원 모두 호환 확인
@@ -154,7 +154,7 @@ H-X 회귀 검증: `pytest tests/` **215 passed** (회귀 0). `from app.main imp
 
 ### 본격 PR 시도 (이번 PR — Blocked 문서화만)
 - `docs/adr/0008-mcp-server-adoption.md` (Draft → Blocked 전환, 충돌 매트릭스 추가)
-- `docs/agent-capability-audit/AETHER_WORK_PATTERNS.md` (의존성 베이스라인 사전 측정 누락 패턴 추가)
+- `docs/agent-capability-audit/WORK_PATTERNS.md` (의존성 베이스라인 사전 측정 누락 패턴 추가)
 - `portfolio-service/requirements.txt` — **변경 없음** (mcp 미추가)
 - `portfolio-service/app/mcp_server.py` — **미생성** (선행 카드 후 재개)
 - `AGENTS.md` — **변경 없음** (도구 미노출이므로 §7 신규 행 미추가)
