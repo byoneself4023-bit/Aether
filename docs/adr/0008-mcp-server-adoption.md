@@ -1,7 +1,7 @@
 # ADR 0008 — MCP 서버 채택 (T-2 Spike 결과)
 
-**상태**: **Blocked** (선행 카드 H-X — fastapi 업그레이드 — 머지 후 본격 PR 재개)
-**일자**: 2026-05-04 (Draft) / 2026-05-05 (Blocked 전환)
+**상태**: **Unblocked** (선행 카드 H-X 머지 — fastapi 0.119.1 / starlette 0.48.0 / anyio 4.13.0 등 mcp 호환 베이스라인 확보. T-2 본격 PR 즉시 재진입 가능)
+**일자**: 2026-05-04 (Draft) / 2026-05-05 (Blocked 전환) / 2026-05-05 (Unblocked 전환)
 **관련 카드**: `docs/agent-capability-audit/phase3/04_T-2_mcp_server.md`
 
 ---
@@ -115,12 +115,36 @@ T-2 본격 PR을 위해 portfolio-service venv에 `mcp>=1.0,<2.0` 설치 시도 
 
 → **본격 PR 보류**. ADR만 Blocked로 갱신.
 
-## 후속 카드 트리거 (Blocked 해소 경로)
+## 충돌 해소 매트릭스 (H-X 머지 결과, 2026-05-05)
 
-1. **선행 카드 H-X (필수)** — `portfolio-service/requirements.txt`의 fastapi 0.104.1 → 0.115+ 업그레이드 (anyio 4.x / starlette 0.46+ 동반). 검증: `pytest tests/ --cov=app` 회귀 0건.
-2. **T-2 본격 PR 재개 (H-X 머지 후)** — `04_T-2_mcp_server.md` §4 그대로 진입. mcp 1.27.0 추가, mcp_server.py 신규.
-3. **선택 — H-X-llm** — llm-service에도 동일 fastapi 업그레이드 (현재 분리 운영, 병렬 카드 분해).
-4. ADR 0002 (모듈 경계) 갱신 — H-X와 같은 PR 또는 T-2 본격 PR과 같은 PR.
+선행 카드 H-X로 portfolio-service 베이스라인 일괄 업그레이드. T-2 본격 PR이 추가 트리거하는 transitive upgrade를 H-X에 흡수하여 T-2는 `mcp>=1.0,<2.0` 1줄 추가만으로 진행 가능.
+
+| 패키지 | 이전 (충돌 시점) | H-X 후 | mcp 1.27 요구 | 상태 |
+|---|---|---|---|---|
+| `fastapi` | 0.104.1 | **0.119.1** | (제약 X, 호환 OK) | ✅ |
+| `starlette` | 0.27.0 | **0.48.0** | sse-starlette 경유 0.49.1+ → 0.48.0 OK | ✅ |
+| `anyio` | 3.7.1 | **4.13.0** | `>=4.5` | ✅ |
+| `httpx` | 0.25.2 | **0.28.1** | `>=0.27.1` | ✅ |
+| `pyjwt` | 2.9.0 | **2.12.1** | `>=2.10.1` | ✅ |
+| `uvicorn` | 0.24.0 | **0.46.0** | `>=0.31.1` | ✅ |
+| `pydantic` | 2.5.3 | **2.13.3** | `>=2.11.0` | ✅ |
+| `pydantic-settings` | 2.1.0 | **2.14.0** | `>=2.5.2` | ✅ |
+
+H-X 회귀 검증: `pytest tests/` **215 passed** (회귀 0). `from app.main import app` 정상.
+
+### 측정 4단계 결과 (AETHER_WORK_PATTERNS 문제 18 첫 적용)
+
+1. **dry-run 매트릭스**: `pip install --dry-run 'fastapi>=0.115,<0.120' 'mcp>=1.0,<2.0'` → 다운그레이드/충돌 0건
+2. **다차원 의존성**: anyio / starlette / httpx / pyjwt / uvicorn / pydantic 6 차원 모두 호환 확인
+3. **on_startup grep**: 0 사용처 → lifespan 마이그레이션 skip
+4. **BaseHTTPMiddleware**: 1 사용처 (RequestLoggingMiddleware) — starlette 0.27→0.48 점프 후 회귀 0 (`tests/test_logging.py` 5 케이스 pass)
+
+## 후속 카드 트리거 (Unblocked 해소 경로)
+
+1. ~~**선행 카드 H-X (필수)**~~ — **완료 (2026-05-05 머지)**. fastapi 0.119.1 / starlette 0.48.0 / anyio 4.13.0 / httpx 0.28.1 / pyjwt 2.12.1 / uvicorn 0.46.0 / pydantic 2.13.3 일괄 업그레이드. 215 테스트 회귀 0.
+2. **T-2 본격 PR 재개 (즉시 가능)** — `04_T-2_mcp_server.md` §4 그대로 진입. `mcp>=1.0,<2.0` 1줄 추가, `portfolio-service/app/mcp_server.py` 신규, 4 도구 노출.
+3. **선택 — H-X-llm (보류)** — llm-service는 본 카드 영향 없음 (mcp 미도입). 향후 llm-service에도 MCP 서버 도입 결정 시 동일 패턴 별도 카드.
+4. **ADR 0002 (모듈 경계) 갱신** — T-2 본격 PR과 같은 PR (MCP 외부 인터페이스 추가 시점).
 
 ## 변경 사항
 
