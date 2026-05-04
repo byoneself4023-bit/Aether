@@ -115,13 +115,13 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 |---|---|---|
 | LLM Provider | Google Gemini 2.5-Flash | `llm-service/app/config.py:20`, `requirements.txt:4` |
 | Embedding | Gemini embedding-001 | `llm-service/app/config.py:27` |
-| 벡터 DB | ChromaDB 1.5.0 (in-process persistent) | `llm-service/requirements.txt:3` |
+| 벡터 DB | ChromaDB 1.5.0 / Qdrant v1.12.0 어댑터 토글 (`VECTOR_STORE=chromadb\|qdrant`, default chromadb) | `llm-service/app/services/vector_store.py` + `docs/adr/0009-qdrant-migration.md` |
 | 관계형 DB | PostgreSQL 16 | `docker-compose.yml:7` (auth-service 전용) |
 | 캐시 | Redis 7 | `docker-compose.yml:27` (auth-service 전용) |
 | 시장 데이터 | yfinance | `portfolio-service/requirements.txt` |
 
 - **단일 LLM Provider**: `LLMProvider` 추상 + `GeminiProvider` 구현(`llm-service/app/services/llm_provider.py`). OpenAI/Anthropic/Bedrock 분기 부재.
-- **벡터 DB 수평 확장 제약**: ChromaDB가 `llm-service` 컨테이너 볼륨에 묶여 있어 인스턴스 다중화 시 인덱스 분리 문제. T-6에서 Qdrant 이전 예정 (01:§4).
+- **벡터 DB 어댑터 (T-6 머지)**: `vector_store.py`에서 ChromaDBStore / QdrantStore 추상화. `VECTOR_STORE` 환경변수로 즉시 전환, 사고 시 `unset`만으로 ChromaDB 복원. ChromaDB는 `llm_chroma_data` 볼륨에 묶이는 한계가 있고, 운영 진입 시 `qdrant` 토글로 멀티 인스턴스 동기화 가능.
 
 ---
 
