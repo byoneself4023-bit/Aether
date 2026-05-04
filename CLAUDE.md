@@ -83,14 +83,14 @@ PR은 다음을 모두 통과해야 머지 가능. 1차 도입은 **기존 코�
 
 ---
 
-## §7. AETHER_WORK_PATTERNS 의무 참조
+## §7. WORK_PATTERNS 의무 참조
 
 매 카드 plan 단계에서 다음 문서를 **먼저 읽고 적용**:
 
-- 위치: `docs/agent-capability-audit/AETHER_WORK_PATTERNS.md`
+- 위치: `docs/agent-capability-audit/WORK_PATTERNS.md`
 - 적용 순서: 본 문서 §🎯 적용 순서 (Step 1-5)
 - 핵심: 누적 문제 18건 / 체크리스트 A-G / 자기 일관성 패턴 5종 / 메모리 통합 4 레이어
 
-**효과**: 같은 실수 반복 차단. 매 카드 plan에 "AETHER_WORK_PATTERNS 적용 결과" 섹션 박음 (체크리스트 통과 여부 / 유사 문제 매칭 / 적용 패턴 명시).
+**효과**: 같은 실수 반복 차단. 매 카드 plan에 "WORK_PATTERNS 적용 결과" 섹션 박음 (체크리스트 통과 여부 / 유사 문제 매칭 / 적용 패턴 명시).
 
 **갱신 의무**: 작업 중 신규 문제 발견 시 본 문서 §누락 N으로 추가. 같은 PR 또는 별도 정리 카드에 반영.

@@ -7,7 +7,7 @@
 > Aether 프로젝트에서 실제 발생한 문제 + 디버깅 비용 + 사전 예방 패턴을 누적 정리.
 > Claude Code가 매 카드 plan 시 본 문서 먼저 읽어 같은 실수 반복 차단.
 
-**위치**: `docs/agent-capability-audit/AETHER_WORK_PATTERNS.md`
+**위치**: `docs/agent-capability-audit/WORK_PATTERNS.md`
 **참조 시점**: 매 작업 plan 단계 + 의심 발생 시 즉시
 **최종 갱신**: 2026-05-03 (T-2 진입 직전)
 
@@ -83,7 +83,7 @@ Please commit your changes or stash them before you switch branches.
    git checkout main && git pull
    git stash pop
    ```
-3. **AETHER_WORK_PATTERNS 패턴 정착**: 모든 PR 머지 시 본 절차 자동 적용
+3. **WORK_PATTERNS 패턴 정착**: 모든 PR 머지 시 본 절차 자동 적용
 
 #### 문제 14: `gh pr create` "Warning: N uncommitted changes" 경고 (전반)
 
@@ -667,7 +667,7 @@ else:
 1. **본 문서 §적용 순서 (Step 1-5) 의무 수행**
 2. **plan 본문에 다음 섹션 박음**:
    ```markdown
-   ## AETHER_WORK_PATTERNS 적용 결과
+   ## WORK_PATTERNS 적용 결과
    - 체크리스트 A-G: [통과 / 보정 발견]
    - 유사 누락 사례: [문제 N 매칭 / 없음]
    - 자기 일관성 패턴: [패턴 N 적용]
@@ -679,7 +679,7 @@ else:
 1. **본 문서에 §누락 N으로 추가**
 2. 증상 + 원인 + 디버깅 비용 + 사전 예방 명시
 3. 같은 PR 또는 별도 PR (H-1c 같은 정리 카드)로 본 문서 갱신
-4. PR 본문에 "AETHER_WORK_PATTERNS 갱신" 한 줄
+4. PR 본문에 "WORK_PATTERNS 갱신" 한 줄
 
 ### 카드 머지 후 회고
 
