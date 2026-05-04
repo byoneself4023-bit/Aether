@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     llm_provider: str = "gemini"
     llm_model: str = "gemini-2.5-flash"
     llm_temperature: float = 0.7
-    llm_max_tokens: int = 2048
+    llm_max_tokens: int = 4096
     llm_timeout: int = 30
 
     # RAG 설정
@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     rag_top_k: int = 5
     rag_chunk_size: int = 1000
     rag_chunk_overlap: int = 200
+
+    # T-6: 벡터 DB 토글 (chromadb | qdrant)
+    vector_store: str = "chromadb"
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_collection: str = "aether_knowledge"
 
     # Rate Limiting
     rate_limit_per_minute: int = 60

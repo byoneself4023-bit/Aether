@@ -1,24 +1,24 @@
-"""RAG 파이프라인 - ChromaDB 기반 금융 지식 검색"""
+"""RAG 파이프라인 - 벡터 DB 어댑터(ChromaDB / Qdrant) 기반 금융 지식 검색.
+
+T-6 머지 후 ChromaDB 직접 호출 → ``app.services.vector_store`` 어댑터로 통일.
+환경변수 ``VECTOR_STORE=chromadb|qdrant`` 토글로 백엔드 즉시 전환.
+"""
 
 import logging
 from pathlib import Path
 from typing import Any
 
-import chromadb
-from chromadb.config import Settings as ChromaSettings
 from google import genai
 from google.genai import types as genai_types
 
 from app.config import get_settings
-from app.services.llm import call_llm, LLMError
+from app.services.llm import LLMError, call_llm
 from app.services.prompt_registry import get_registry
+from app.services.vector_store import get_vector_store
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-# 전역 변수
-_chroma_client: chromadb.ClientAPI | None = None
-_collection: chromadb.Collection | None = None
 _initialized: bool = False
 _genai_client: genai.Client | None = None
 
@@ -35,6 +35,7 @@ def _get_genai_client() -> genai.Client:
 # ============================================================
 # 임베딩 함수
 # ============================================================
+
 
 def _get_embedding(text: str) -> list[float]:
     """Gemini 임베딩 생성 (768차원, retrieval_document)."""
@@ -70,6 +71,7 @@ def _get_query_embedding(text: str) -> list[float]:
 # ChromaDB 커스텀 임베딩 함수
 # ============================================================
 
+
 class GeminiEmbeddingFunction:
     """ChromaDB용 Gemini 임베딩 함수"""
 
@@ -84,6 +86,7 @@ class GeminiEmbeddingFunction:
 # ============================================================
 # 초기화 함수
 # ============================================================
+
 
 def _load_knowledge_base() -> list[dict]:
     """
@@ -178,17 +181,19 @@ def _split_document(
     total_chunks = len(chunks)
     sections = []
     for i, (title, text, idx, sub_idx, sub_total) in enumerate(chunks):
-        sections.append({
-            "id": f"{source}_{idx}",
-            "content": text,
-            "metadata": {
-                "source": source,
-                "title": title,
-                "section_idx": idx,
-                "chunk_index": i,
-                "total_chunks": total_chunks,
+        sections.append(
+            {
+                "id": f"{source}_{idx}",
+                "content": text,
+                "metadata": {
+                    "source": source,
+                    "title": title,
+                    "section_idx": idx,
+                    "chunk_index": i,
+                    "total_chunks": total_chunks,
+                },
             }
-        })
+        )
 
     return sections
 
@@ -246,66 +251,38 @@ def _split_by_paragraphs(
 
 
 def init_vectorstore(force_reload: bool = False) -> bool:
-    """
-    ChromaDB 벡터스토어 초기화 + 문서 임베딩
+    """벡터스토어(어댑터) 초기화 + 문서 임베딩.
 
     Args:
-        force_reload: True면 기존 데이터 삭제 후 재로드
+        force_reload: True면 기존 컬렉션 삭제 후 재로드
 
     Returns:
         초기화 성공 여부
     """
-    global _chroma_client, _collection, _initialized
+    global _initialized
 
     if _initialized and not force_reload:
         logger.info("Vectorstore already initialized")
         return True
 
     try:
-        # ChromaDB 클라이언트 생성 (로컬 persistent)
-        persist_dir = Path(settings.chroma_persist_dir)
-        persist_dir.mkdir(parents=True, exist_ok=True)
+        store = get_vector_store()
+        store.init(force_reload=force_reload)
 
-        _chroma_client = chromadb.PersistentClient(
-            path=str(persist_dir),
-            settings=ChromaSettings(anonymized_telemetry=False),
-        )
-
-        # 컬렉션 생성 또는 가져오기
-        collection_name = "aether_knowledge"
-
-        if force_reload:
-            # 기존 컬렉션 삭제
-            try:
-                _chroma_client.delete_collection(collection_name)
-                logger.info(f"Deleted existing collection: {collection_name}")
-            except Exception:
-                pass
-
-        # 컬렉션 생성/가져오기
-        _collection = _chroma_client.get_or_create_collection(
-            name=collection_name,
-            metadata={"description": "Aether financial knowledge base"},
-        )
-
-        # 문서가 없거나 force_reload면 로드
-        existing_count = _collection.count()
+        existing_count = store.count()
         if existing_count == 0 or force_reload:
             documents = _load_knowledge_base()
 
             if documents:
-                # API 키 확인
                 if not settings.google_api_key:
                     logger.warning("GOOGLE_API_KEY not set, skipping embedding")
                     _initialized = True
                     return True
 
-                # 임베딩 생성 및 저장
                 ids = [doc["id"] for doc in documents]
                 contents = [doc["content"] for doc in documents]
                 metadatas = [doc["metadata"] for doc in documents]
 
-                # 배치로 임베딩 생성
                 logger.info(f"Generating embeddings for {len(documents)} documents...")
                 embeddings = []
                 for i, content in enumerate(contents):
@@ -316,15 +293,9 @@ def init_vectorstore(force_reload: bool = False) -> bool:
                             logger.info(f"Embedded {i + 1}/{len(documents)} documents")
                     except Exception as e:
                         logger.error(f"Failed to embed document {i}: {e}")
-                        embeddings.append([0.0] * 768)  # 더미 임베딩
+                        embeddings.append([0.0] * 768)
 
-                # ChromaDB에 저장
-                _collection.add(
-                    ids=ids,
-                    embeddings=embeddings,
-                    documents=contents,
-                    metadatas=metadatas,
-                )
+                store.add(ids, embeddings, contents, metadatas)
                 logger.info(f"Added {len(documents)} documents to vectorstore")
         else:
             logger.info(f"Using existing vectorstore with {existing_count} documents")
@@ -338,18 +309,17 @@ def init_vectorstore(force_reload: bool = False) -> bool:
 
 
 def get_vectorstore_status() -> dict:
-    """벡터스토어 상태 확인"""
-    global _collection, _initialized
-
-    if not _initialized or _collection is None:
+    """벡터스토어 상태 확인."""
+    if not _initialized:
         return {
             "initialized": False,
             "document_count": 0,
         }
 
+    store = get_vector_store()
     return {
         "initialized": True,
-        "document_count": _collection.count(),
+        "document_count": store.count(),
         "persist_dir": settings.chroma_persist_dir,
     }
 
@@ -357,6 +327,7 @@ def get_vectorstore_status() -> dict:
 # ============================================================
 # 검색 함수
 # ============================================================
+
 
 def query(
     question: str,
@@ -379,40 +350,17 @@ def query(
             "distance": 0.123
         }, ...]
     """
-    global _collection, _initialized
-
     if not _initialized:
         init_vectorstore()
 
-    if _collection is None:
-        raise LLMError("Vectorstore not initialized")
-
-    # 쿼리 임베딩 생성
+    store = get_vector_store()
     query_embedding = _get_query_embedding(question)
 
-    # 필터 조건
     where = None
     if filter_source:
         where = {"source": filter_source}
 
-    # 검색
-    results = _collection.query(
-        query_embeddings=[query_embedding],
-        n_results=k,
-        where=where,
-        include=["documents", "metadatas", "distances"],
-    )
-
-    # 결과 정리
-    documents = []
-    if results["ids"] and results["ids"][0]:
-        for i, doc_id in enumerate(results["ids"][0]):
-            documents.append({
-                "id": doc_id,
-                "content": results["documents"][0][i] if results["documents"] else "",
-                "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
-                "distance": results["distances"][0][i] if results["distances"] else 0,
-            })
+    documents = store.query(embedding=query_embedding, k=k, where=where)
 
     logger.info(f"Found {len(documents)} documents for query: {question[:50]}...")
     return documents
@@ -494,7 +442,8 @@ def build_optimized_context(
 
     # 쿼리 단어 추출 (한국어 + 영어)
     import re
-    query_words = re.findall(r'[가-힣]+|[a-zA-Z]{2,}', query_text)
+
+    query_words = re.findall(r"[가-힣]+|[a-zA-Z]{2,}", query_text)
 
     # 문서당 할당 가능한 최대 크기
     per_doc_budget = max_context_chars // len(documents)
@@ -522,11 +471,13 @@ def build_optimized_context(
         context_parts.append(part)
         total_chars += len(part)
 
-        sources.append({
-            "title": title,
-            "source": doc["metadata"].get("source", "Unknown"),
-            "relevance": 1 - doc.get("distance", 0),
-        })
+        sources.append(
+            {
+                "title": title,
+                "source": doc["metadata"].get("source", "Unknown"),
+                "relevance": 1 - doc.get("distance", 0),
+            }
+        )
 
     context = "\n\n---\n\n".join(context_parts)
     return context, sources
@@ -565,9 +516,7 @@ def query_with_llm(
 
     # RAG 프롬프트 생성 (prompt_registry 단일 진입점)
     registry = get_registry()
-    prompt = registry.get("rag_user", "1.0").template.format(
-        context=context, question=question
-    )
+    prompt = registry.get("rag_user", "1.0").template.format(context=context, question=question)
     system_prompt = registry.get("rag_system", "1.0").template
 
     # LLM 호출
@@ -587,6 +536,7 @@ def query_with_llm(
 # 문서 관리 함수
 # ============================================================
 
+
 def add_document(
     doc_id: str,
     content: str,
@@ -603,17 +553,13 @@ def add_document(
     Returns:
         성공 여부
     """
-    global _collection, _initialized
-
     if not _initialized:
         init_vectorstore()
 
-    if _collection is None:
-        return False
-
     try:
+        store = get_vector_store()
         embedding = _get_embedding(content)
-        _collection.add(
+        store.add(
             ids=[doc_id],
             embeddings=[embedding],
             documents=[content],
@@ -636,13 +582,12 @@ def delete_document(doc_id: str) -> bool:
     Returns:
         성공 여부
     """
-    global _collection
-
-    if _collection is None:
+    if not _initialized:
         return False
 
     try:
-        _collection.delete(ids=[doc_id])
+        store = get_vector_store()
+        store.delete([doc_id])
         logger.info(f"Deleted document: {doc_id}")
         return True
     except Exception as e:
@@ -660,25 +605,12 @@ def list_documents(limit: int = 100) -> list[dict]:
     Returns:
         문서 목록
     """
-    global _collection
-
-    if _collection is None:
+    if not _initialized:
         return []
 
     try:
-        results = _collection.get(
-            limit=limit,
-            include=["metadatas"],
-        )
-
-        documents = []
-        for i, doc_id in enumerate(results["ids"]):
-            documents.append({
-                "id": doc_id,
-                "metadata": results["metadatas"][i] if results["metadatas"] else {},
-            })
-
-        return documents
+        store = get_vector_store()
+        return store.list_all(limit=limit)
     except Exception as e:
         logger.error(f"Failed to list documents: {e}")
         return []

@@ -49,7 +49,7 @@ def mock_embedding():
 
 @pytest.fixture
 def mock_chroma_collection():
-    """Mock ChromaDB Collection"""
+    """Mock ChromaDB Collection — Init 테스트가 PersistentClient mock 통해 사용."""
     collection = MagicMock()
     collection.count.return_value = 10
     collection.query.return_value = {
@@ -69,6 +69,32 @@ def mock_chroma_collection():
         ],
     }
     return collection
+
+
+@pytest.fixture
+def mock_store():
+    """Mock 벡터 DB 어댑터 — query/add/delete/list_all 등 어댑터 호출 검증용."""
+    store = MagicMock()
+    store.count.return_value = 10
+    store.query.return_value = [
+        {
+            "id": "doc_1",
+            "content": "문서 1 내용",
+            "metadata": {"source": "portfolio_theory", "title": "효율적 프론티어"},
+            "distance": 0.1,
+        },
+        {
+            "id": "doc_2",
+            "content": "문서 2 내용",
+            "metadata": {"source": "risk_management", "title": "VaR 설명"},
+            "distance": 0.2,
+        },
+    ]
+    store.list_all.return_value = [
+        {"id": "doc_1", "metadata": {"source": "portfolio_theory"}},
+        {"id": "doc_2", "metadata": {"source": "risk_management"}},
+    ]
+    return store
 
 
 # ============================================================
@@ -153,7 +179,7 @@ class TestLoadKnowledgeBase:
 
 class TestInitVectorstore:
     @patch("app.services.rag._get_embedding")
-    @patch("app.services.rag.chromadb.PersistentClient")
+    @patch("app.services.vector_store.chromadb.PersistentClient")
     @patch("app.services.rag.settings")
     def test_init_vectorstore_success(
         self,
@@ -180,9 +206,10 @@ class TestInitVectorstore:
 
         # Reset global state
         import app.services.rag as rag_module
+        from app.services.vector_store import reset_vector_store
+
         rag_module._initialized = False
-        rag_module._collection = None
-        rag_module._chroma_client = None
+        reset_vector_store()
 
         # Execute
         result = init_vectorstore()
@@ -191,7 +218,7 @@ class TestInitVectorstore:
         assert result is True
         mock_client.get_or_create_collection.assert_called_once()
 
-    @patch("app.services.rag.chromadb.PersistentClient")
+    @patch("app.services.vector_store.chromadb.PersistentClient")
     @patch("app.services.rag.settings")
     def test_init_without_api_key(self, mock_settings, mock_client_class):
         """API 키 없이 초기화 (임베딩 스킵)"""
@@ -209,8 +236,10 @@ class TestInitVectorstore:
 
         # Reset global state
         import app.services.rag as rag_module
+        from app.services.vector_store import reset_vector_store
+
         rag_module._initialized = False
-        rag_module._collection = None
+        reset_vector_store()
 
         result = init_vectorstore()
 
@@ -223,18 +252,17 @@ class TestInitVectorstore:
 
 class TestQuery:
     @patch("app.services.rag._get_query_embedding")
-    @patch("app.services.rag._collection")
+    @patch("app.services.rag.get_vector_store")
     @patch("app.services.rag._initialized", True)
     def test_query_success(
         self,
-        mock_collection,
+        mock_get_store,
         mock_get_query_embedding,
         mock_embedding,
-        mock_chroma_collection,
+        mock_store,
     ):
         # Setup
-        import app.services.rag as rag_module
-        rag_module._collection = mock_chroma_collection
+        mock_get_store.return_value = mock_store
         mock_get_query_embedding.return_value = mock_embedding
 
         # Execute
@@ -245,38 +273,33 @@ class TestQuery:
         assert results[0]["id"] == "doc_1"
         assert results[0]["content"] == "문서 1 내용"
         assert "distance" in results[0]
-        mock_chroma_collection.query.assert_called_once()
+        mock_store.query.assert_called_once()
 
     @patch("app.services.rag._get_query_embedding")
+    @patch("app.services.rag.get_vector_store")
     @patch("app.services.rag._initialized", True)
     def test_query_with_filter(
         self,
+        mock_get_store,
         mock_get_query_embedding,
         mock_embedding,
-        mock_chroma_collection,
+        mock_store,
     ):
-        import app.services.rag as rag_module
-        rag_module._collection = mock_chroma_collection
+        mock_get_store.return_value = mock_store
         mock_get_query_embedding.return_value = mock_embedding
 
         query("VaR란?", k=3, filter_source="risk_management")
 
-        # 필터가 적용되었는지 확인
-        call_args = mock_chroma_collection.query.call_args
+        # 필터가 어댑터에 전달되었는지 확인
+        call_args = mock_store.query.call_args
         assert call_args.kwargs["where"] == {"source": "risk_management"}
 
+    @patch("app.services.rag.get_vector_store")
     @patch("app.services.rag._initialized", True)
-    def test_query_empty_results(self, mock_chroma_collection):
-        import app.services.rag as rag_module
-
+    def test_query_empty_results(self, mock_get_store, mock_store):
         # 빈 결과 반환
-        mock_chroma_collection.query.return_value = {
-            "ids": [[]],
-            "documents": [[]],
-            "metadatas": [[]],
-            "distances": [[]],
-        }
-        rag_module._collection = mock_chroma_collection
+        mock_store.query.return_value = []
+        mock_get_store.return_value = mock_store
 
         with patch("app.services.rag._get_query_embedding", return_value=[0.1] * 768):
             results = query("존재하지 않는 주제")
@@ -347,10 +370,12 @@ class TestQueryWithLLM:
 
 class TestDocumentManagement:
     @patch("app.services.rag._get_embedding")
+    @patch("app.services.rag.get_vector_store")
     @patch("app.services.rag._initialized", True)
-    def test_add_document(self, mock_get_embedding, mock_embedding, mock_chroma_collection):
-        import app.services.rag as rag_module
-        rag_module._collection = mock_chroma_collection
+    def test_add_document(
+        self, mock_get_store, mock_get_embedding, mock_embedding, mock_store
+    ):
+        mock_get_store.return_value = mock_store
         mock_get_embedding.return_value = mock_embedding
 
         result = add_document(
@@ -360,28 +385,28 @@ class TestDocumentManagement:
         )
 
         assert result is True
-        mock_chroma_collection.add.assert_called_once()
+        mock_store.add.assert_called_once()
 
+    @patch("app.services.rag.get_vector_store")
     @patch("app.services.rag._initialized", True)
-    def test_delete_document(self, mock_chroma_collection):
-        import app.services.rag as rag_module
-        rag_module._collection = mock_chroma_collection
+    def test_delete_document(self, mock_get_store, mock_store):
+        mock_get_store.return_value = mock_store
 
         result = delete_document("doc_to_delete")
 
         assert result is True
-        mock_chroma_collection.delete.assert_called_once_with(ids=["doc_to_delete"])
+        mock_store.delete.assert_called_once_with(["doc_to_delete"])
 
+    @patch("app.services.rag.get_vector_store")
     @patch("app.services.rag._initialized", True)
-    def test_list_documents(self, mock_chroma_collection):
-        import app.services.rag as rag_module
-        rag_module._collection = mock_chroma_collection
+    def test_list_documents(self, mock_get_store, mock_store):
+        mock_get_store.return_value = mock_store
 
         docs = list_documents(limit=10)
 
         assert len(docs) == 2
         assert docs[0]["id"] == "doc_1"
-        mock_chroma_collection.get.assert_called_once()
+        mock_store.list_all.assert_called_once_with(limit=10)
 
 
 # ============================================================
@@ -396,10 +421,10 @@ class TestVectorstoreStatus:
         assert status["initialized"] is False
         assert status["document_count"] == 0
 
+    @patch("app.services.rag.get_vector_store")
     @patch("app.services.rag._initialized", True)
-    def test_status_initialized(self, mock_chroma_collection):
-        import app.services.rag as rag_module
-        rag_module._collection = mock_chroma_collection
+    def test_status_initialized(self, mock_get_store, mock_store):
+        mock_get_store.return_value = mock_store
 
         status = get_vectorstore_status()
 
