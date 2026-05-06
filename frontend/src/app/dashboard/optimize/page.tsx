@@ -11,6 +11,32 @@ import type { OptimizationResult } from '@/types/portfolio';
 import TickerSearch from '@/components/portfolio/TickerSearch';
 import axios from 'axios';
 
+/** JSON 키 패턴이 노출된 분석 텍스트를 한글 헤더로 치환 */
+function cleanAnalysisText(text: string): string {
+  const keyMap: Record<string, string> = {
+    'return_analysis': '수익률 분석',
+    'risk_analysis': '리스크 분석',
+    'sharpe_analysis': '샤프 비율 분석',
+    'composition': '포트폴리오 구성',
+    'summary': '요약',
+    'metrics_interpretation': '지표 해석',
+    'top_holdings': '주요 종목',
+    'sector_concentration': '섹터 집중도',
+    'diversification_score': '분산 점수',
+    'investor_profile': '투자자 유형',
+  };
+
+  let cleaned = text;
+  for (const [key, label] of Object.entries(keyMap)) {
+    // "**return_analysis**:" 또는 "**return_analysis:**" 또는 "return_analysis:" 패턴 치환
+    cleaned = cleaned.replace(
+      new RegExp(`\\*{0,2}${key}\\*{0,2}\\s*:\\s*`, 'gi'),
+      `**${label}**: `,
+    );
+  }
+  return cleaned;
+}
+
 function defaultStartDate() {
   const d = new Date();
   d.setFullYear(d.getFullYear() - 3);
@@ -65,8 +91,8 @@ export default function OptimizePage() {
           sharpe_ratio: data.metrics.sharpe_ratio,
         });
         setAnalysis(text);
-      } catch {
-        // 분석 실패는 조용히 무시
+      } catch (e) {
+        console.error('AI 분석 실패:', e);
       } finally {
         setIsAnalyzing(false);
       }
@@ -86,7 +112,7 @@ export default function OptimizePage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <p className="text-zinc-400">종목을 선택하고 최적의 자산 배분을 찾으세요.</p>
+      <p className="text-zinc-400 -mt-1">종목을 선택하고 최적의 자산 배분을 찾으세요.</p>
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -292,7 +318,7 @@ export default function OptimizePage() {
                 </div>
               ) : (
                 <div className="prose prose-invert prose-sm max-w-none">
-                  <ReactMarkdown>{analysis}</ReactMarkdown>
+                  <ReactMarkdown>{cleanAnalysisText(analysis)}</ReactMarkdown>
                 </div>
               )}
             </div>

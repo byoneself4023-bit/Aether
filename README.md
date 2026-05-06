@@ -1,4 +1,4 @@
-# Aether — AI 포트폴리오 최적화 플랫폼
+# Aether — AI 투자 포트폴리오 최적화 플랫폼
 
 Markowitz 최적화 + LLM 해석 + 실시간 리스크 분석을 제공하는 풀스택 핀테크 플랫폼
 
@@ -128,11 +128,8 @@ Aether/
 └── docs/
     ├── Phase/              # 구현 계획 (5개 Phase)
     ├── Review/             # 서비스별 코드 리뷰 결과 (64건)
-    ├── Interview/          # 서비스별 면접 대비 포인트
     ├── Integration/        # Docker Compose 통합 테스트 (10/10)
-    ├── Differentiation/    # Before→After, ADR 8개, 장애 시뮬레이션
-    ├── Guide/              # 기술 용어 쉬운 설명
-    └── Design/             # 설계 문서
+    └── Differentiation/    # Before→After, ADR 8개, 장애 시뮬레이션
 ```
 
 ---

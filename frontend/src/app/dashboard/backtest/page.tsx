@@ -69,7 +69,7 @@ export default function BacktestPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <p className="text-zinc-400">과거 데이터로 포트폴리오 전략을 검증하세요.</p>
+      <p className="text-zinc-400 -mt-1">과거 데이터로 포트폴리오 전략을 검증하세요.</p>
 
       {error && (
         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">

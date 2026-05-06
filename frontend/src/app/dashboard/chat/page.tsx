@@ -75,7 +75,7 @@ export default function ChatPage() {
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
-      <p className="text-zinc-400 mb-4">포트폴리오나 금융 개념에 대해 질문하세요.</p>
+      <p className="text-zinc-400 -mt-1 mb-4">포트폴리오나 금융 개념에 대해 질문하세요.</p>
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
