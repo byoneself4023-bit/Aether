@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
+from typing import Any, AsyncIterator
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import create_react_agent
@@ -48,6 +48,32 @@ class ReActAgent(BaseAgent):
         full_input = self._build_input(user_input, context or {})
         result = await self._agent.ainvoke({"messages": [("user", full_input)]})
         return self._extract_tool_results(result)
+
+    async def run_stream(
+        self, user_input: str, context: dict | None = None
+    ) -> AsyncIterator[dict[str, Any]]:
+        """D-6 / ADR 0019: astream_events 본격 — token / tool 이벤트 순차 yield.
+
+        yield 형식:
+        - {"type": "token", "content": str} — LLM 답변 청크
+        - {"type": "tool_start", "name": str}
+        - {"type": "tool_end", "name": str}
+        """
+        full_input = self._build_input(user_input, context or {})
+        async for event in self._agent.astream_events(
+            {"messages": [("user", full_input)]},
+            version="v2",
+        ):
+            kind = event.get("event")
+            if kind == "on_chat_model_stream":
+                chunk = event.get("data", {}).get("chunk")
+                content = getattr(chunk, "content", None)
+                if isinstance(content, str) and content:
+                    yield {"type": "token", "content": content}
+            elif kind == "on_tool_start":
+                yield {"type": "tool_start", "name": event.get("name", "")}
+            elif kind == "on_tool_end":
+                yield {"type": "tool_end", "name": event.get("name", "")}
 
     def _build_input(self, user_input: str, context: dict) -> str:
         ctx_json = json.dumps(context, ensure_ascii=False, default=str)
