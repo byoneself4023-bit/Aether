@@ -30,7 +30,8 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 
 _COLLECTION_NAME = "aether_knowledge"
-_EMBED_DIM = 768
+# Gemini gemini-embedding-001 default 차원 (T-6b 실측: 3072). chromadb는 자동 감지, Qdrant는 명시 의무.
+_EMBED_DIM = 3072
 
 
 class VectorStore(ABC):

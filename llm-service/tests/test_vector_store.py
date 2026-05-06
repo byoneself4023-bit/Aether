@@ -34,12 +34,15 @@ class TestGetVectorStore:
         reset_vector_store()
         os.environ.pop("VECTOR_STORE", None)
 
-    def test_default_chromadb(self):
+    @patch("app.services.vector_store.QdrantStore.__init__", return_value=None)
+    def test_default_qdrant(self, mock_init):
+        # T-6b / ADR 0016: default qdrant 정착 (실 클라이언트 생성 회피)
         os.environ.pop("VECTOR_STORE", None)
         store = get_vector_store()
-        assert isinstance(store, ChromaDBStore)
+        assert isinstance(store, QdrantStore)
 
-    def test_env_qdrant(self):
+    @patch("app.services.vector_store.QdrantStore.__init__", return_value=None)
+    def test_env_qdrant(self, mock_init):
         os.environ["VECTOR_STORE"] = "qdrant"
         store = get_vector_store()
         assert isinstance(store, QdrantStore)
@@ -113,7 +116,7 @@ class TestChromaDBStore:
 
         store = ChromaDBStore()
         store.init()
-        results = store.query(embedding=[0.1] * 768, k=1)
+        results = store.query(embedding=[0.1] * 3072, k=1)
 
         assert len(results) == 1
         assert results[0] == {
@@ -150,13 +153,13 @@ class TestQdrantStoreIntegration:
     def test_add_and_query_roundtrip(self, qdrant_store):
         qdrant_store.add(
             ids=["doc_a", "doc_b"],
-            embeddings=[[0.1] * 768, [0.2] * 768],
+            embeddings=[[0.1] * 3072, [0.2] * 3072],
             documents=["문서 A", "문서 B"],
             metadatas=[{"source": "a"}, {"source": "b"}],
         )
         assert qdrant_store.count() == 2
 
-        results = qdrant_store.query(embedding=[0.1] * 768, k=2)
+        results = qdrant_store.query(embedding=[0.1] * 3072, k=2)
         assert len(results) == 2
         ids = {r["id"] for r in results}
         assert ids == {"doc_a", "doc_b"}
@@ -170,18 +173,18 @@ class TestQdrantStoreIntegration:
     def test_query_with_where_filter(self, qdrant_store):
         qdrant_store.add(
             ids=["doc_a", "doc_b"],
-            embeddings=[[0.1] * 768, [0.2] * 768],
+            embeddings=[[0.1] * 3072, [0.2] * 3072],
             documents=["A 내용", "B 내용"],
             metadatas=[{"source": "alpha"}, {"source": "beta"}],
         )
-        results = qdrant_store.query(embedding=[0.1] * 768, k=10, where={"source": "alpha"})
+        results = qdrant_store.query(embedding=[0.1] * 3072, k=10, where={"source": "alpha"})
         assert len(results) == 1
         assert results[0]["id"] == "doc_a"
 
     def test_delete_removes_point(self, qdrant_store):
         qdrant_store.add(
             ids=["doc_a", "doc_b"],
-            embeddings=[[0.1] * 768, [0.2] * 768],
+            embeddings=[[0.1] * 3072, [0.2] * 3072],
             documents=["A", "B"],
             metadatas=[{}, {}],
         )
@@ -191,7 +194,7 @@ class TestQdrantStoreIntegration:
     def test_list_all_returns_metadata(self, qdrant_store):
         qdrant_store.add(
             ids=["doc_a"],
-            embeddings=[[0.1] * 768],
+            embeddings=[[0.1] * 3072],
             documents=["내용"],
             metadatas=[{"source": "test", "title": "제목"}],
         )

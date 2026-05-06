@@ -98,6 +98,8 @@ services:
       - PORTFOLIO_SERVICE_URL=http://portfolio-service:8001
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
       - JWT_SECRET=${JWT_SECRET}
+      - VECTOR_STORE=${VECTOR_STORE:-qdrant}
+      - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
     volumes:
       - llm_chroma_data:/app/data/chroma
     depends_on:

@@ -187,7 +187,10 @@ class TestInitVectorstore:
         mock_client_class,
         mock_get_embedding,
         mock_embedding,
+        monkeypatch,
     ):
+        # T-6b: default qdrant이지만 본 테스트는 chromadb mock 사용 — 명시 toggle
+        monkeypatch.setenv("VECTOR_STORE", "chromadb")
         # Setup
         mock_settings.google_api_key = "test-key"
         mock_settings.chroma_persist_dir = "/tmp/test_chroma"
