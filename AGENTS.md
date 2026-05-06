@@ -147,6 +147,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | RAG 평가 메트릭 | 4건 (relevance@k / recall@k / LLM-as-judge quality / faithfulness) — D-8 자체 구현 (ragas 미도입). ground truth 8건. CLI: `python -m scripts.eval_rag --no-llm-judge` (Gemini quota 회피) | ADR 0015 |
 | RAG Chunking 정책 | chunk_size=500 / overlap=300 (D-7 grid search 9 조합). Auto Research 본능 — `python -m scripts.grid_search_chunking`. relevance@k 0.7222 → 0.7413 (+0.0191) | ADR 0017 |
 | RAG 도구 통합 | ReAct 5번째 도구 (search_knowledge_base) — D-5 자율 판단. chat.py fallback `RAG_FALLBACK_DIRECT=true` (default). ReAct system prompt v1.1 (5 도구 + 판단 규칙) | ADR 0018 |
+| Streaming SSE | `POST /api/chat/stream` — D-6 신규 endpoint (기존 /api/chat 0 변경). LangGraph `astream_events` v2 / token + tool events / format `data: {json}\n\n` / 우대 요건 4 직격 | ADR 0019 |
 | CACHE_MAXSIZE | 1000 (기본) — 인메모리 LRU 캐시 항목 수 | docker-compose.yml + portfolio config.py + .env.example |
 | CORS 명시 정책 | allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID] — D-2 통일 | ADR 0012 |
 | API 키 검증 (llm) | lifespan startup + config Pydantic validator 이중 안전장치 — D-2 (`#23`) | ADR 0012 |

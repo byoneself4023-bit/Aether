@@ -4,6 +4,7 @@ import logging
 import re
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
 from app.agents.react_agent import ReActAgent
 from app.config import get_settings
@@ -19,6 +20,12 @@ from app.schemas.chat import (
     SourceInfo,
 )
 from app.services.guardrails import sanitize_user_input, wrap_user_input
+from app.services.streaming import (
+    format_error_event,
+    format_token_event,
+    format_tool_event,
+    sse_done,
+)
 from app.services.llm import (
     LLMError,
     LLMResponseError,
@@ -320,6 +327,49 @@ async def chat(
         raise HTTPException(status_code=e.status_code or 500, detail=str(e))
     except LLMError as e:
         raise HTTPException(status_code=500, detail=f"LLM analysis failed: {e}")
+
+
+@router.post("/stream")
+async def chat_stream(
+    request: ChatRequest,
+    user: dict = Depends(verify_jwt),
+) -> StreamingResponse:
+    """D-6 / ADR 0019: SSE 본격 endpoint — 우대 요건 4 직격.
+
+    형식: `data: {json}\\n\\n` + `event: done\\n\\n` 종료.
+    이벤트 type: token / tool / error / done.
+    """
+    sanitized_message, _ = sanitize_user_input(request.message)
+    tickers = request.tickers or extract_tickers(sanitized_message)
+    logger.info(f"Stream request: {sanitized_message[:50]}..., tickers={tickers}")
+
+    async def event_generator():
+        try:
+            if len(tickers) < 2:
+                # 분기 3 옵션 A: RAG fallback (기존 /api/chat 패턴 일관성)
+                wrapped = wrap_user_input(sanitized_message)
+                rag_result = query_with_llm(wrapped, k=3)
+                yield format_token_event(rag_result.get("answer", ""))
+            else:
+                agent = ReActAgent()
+                async for chunk in agent.run_stream(
+                    sanitized_message, context={"tickers": tickers}
+                ):
+                    chunk_type = chunk.get("type")
+                    if chunk_type == "token":
+                        yield format_token_event(chunk.get("content", ""))
+                    elif chunk_type in ("tool_start", "tool_end"):
+                        yield format_tool_event(
+                            chunk.get("name", ""),
+                            chunk_type,
+                        )
+            yield sse_done()
+        except Exception as e:
+            logger.error(f"Stream error: {e}")
+            yield format_error_event(str(e))
+            yield sse_done()
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
