@@ -131,7 +131,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 |---|---|---|
 | 백엔드 서비스 수 | 4 | docs/agent-capability-audit/01_architecture.md:§1 |
 | 인프라 컴포넌트 수 | 2 (postgres, redis) | docker-compose.yml:6-40 |
-| 테스트 합산 | 555 (270/215/70) — T-1b로 +12 (ReAct 단위 + 통합) | 본 § §4 갱신 |
+| 테스트 합산 | 535 (270/195/70) — D-1로 −20 (test_experiment 제거 / `#22`) | 본 § §4 갱신 |
 | 도구 등록 (tool_registry) | 4종 (analyze_portfolio / explain_risk / summarize_backtest / get_recommendation) | §10 + ADR 0005 |
 | 등록 프롬프트 수 | 8 (v1.0) — T-1b로 react_system_prompt 추가 | prompt_registry.py + ADR 0006 |
 | chat.py:/api/chat/analyze LLM 호출 | **ReAct 1 호출** (USE_REACT_AGENT=true 기본) / 절차적 4 호출 (fallback) | §10 + ADR 0006 |
@@ -141,7 +141,8 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | LLM 호출 timeout | 60초 (httpx) | portfolio_client.py |
 | CI 백엔드 병렬 stage | 3 (portfolio/llm/auth) | Jenkinsfile:36-77 |
 | JWT 알고리즘 | HS512 단일 (호환 모드 X) — F-1a (`#21`) 통일 | §9 + ADR 0004 v2 |
-| JWT 검증 적용 라우터 | 17 (llm 9 + portfolio 8) | §9 + ADR 0004 |
+| JWT 검증 적용 라우터 | 12 (llm 9 + portfolio 3) — D-1 (`#22`)에서 experiment 5 endpoint 제거 | §9 + ADR 0004 |
+| 보류 기능 (시나리오 A 본질 X) | 3건 (MLflow 완전 제거 / drift_warning / weight_alerts 응답 키 제거) — D-1 (`#22`) | ADR 0011 |
 | 분산 트레이싱 forward | X-Request-ID + Authorization (httpx event_hooks) | §9 |
 | MCP 서버 도구 | 4종 (analyze_portfolio / compute_risk / run_backtest / get_recommendation, stdio transport) | docs/adr/0008-mcp-server-adoption.md + portfolio-service/app/mcp_server.py |
 | Top 10 진행 상황 | **9.5/10** (T-3 Multi-Agent 보류 결정 — 시나리오 A 일관성 + Houseman Phase 7-12 학습 적용 통합) | docs/agent-capability-audit/EVOLUTION.md + docs/adr/0010-t3-multi-agent-deferred.md |

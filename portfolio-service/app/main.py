@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import optimize, risk, backtest, experiment, metrics
+from app.routers import optimize, risk, backtest, metrics
 from app.middleware.logging import RequestLoggingMiddleware, logger
 
 settings = get_settings()
@@ -37,7 +37,6 @@ logger.info("application_started", version=settings.app_version)
 app.include_router(optimize.router)
 app.include_router(risk.router)
 app.include_router(backtest.router)
-app.include_router(experiment.router)
 app.include_router(metrics.router)
 
 
@@ -62,12 +61,5 @@ async def root():
             "optimize": "POST /api/optimize",
             "risk": "POST /api/risk",
             "backtest": "POST /api/backtest",
-            "experiment": {
-                "optimize": "POST /api/experiment/optimize",
-                "compare": "POST /api/experiment/compare",
-                "backtest": "POST /api/experiment/backtest",
-                "results": "GET /api/experiment/results",
-                "best": "GET /api/experiment/best",
-            }
         }
     }
