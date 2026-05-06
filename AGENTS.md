@@ -144,6 +144,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | JWT 검증 적용 라우터 | 12 (llm 9 + portfolio 3) — D-1 (`#22`)에서 experiment 5 endpoint 제거 | §9 + ADR 0004 |
 | 보류 기능 (시나리오 A 본질 X) | 4건 (MLflow / drift_warning / weight_alerts / RAG 데이터 정제) — D-1 (`#22`) + D-9 보류 | ADR 0011 + ADR 0014 |
 | Vector store sync | T-6 어댑터 (chromadb / qdrant 토글) — default chromadb 사용 중. T-6b 후속 카드 트리거 (D-8 진입 시점) | ADR 0009 + ADR 0014 부록 |
+| RAG 평가 메트릭 | 4건 (relevance@k / recall@k / LLM-as-judge quality / faithfulness) — D-8 자체 구현 (ragas 미도입). ground truth 8건. CLI: `python -m scripts.eval_rag --no-llm-judge` (Gemini quota 회피) | ADR 0015 |
 | CACHE_MAXSIZE | 1000 (기본) — 인메모리 LRU 캐시 항목 수 | docker-compose.yml + portfolio config.py + .env.example |
 | CORS 명시 정책 | allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID] — D-2 통일 | ADR 0012 |
 | API 키 검증 (llm) | lifespan startup + config Pydantic validator 이중 안전장치 — D-2 (`#23`) | ADR 0012 |

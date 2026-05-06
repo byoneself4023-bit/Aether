@@ -15,8 +15,8 @@ venv/
 *.safetensors
 models/
 
-# Data (용량 큼)
-data/
+# Data (용량 큼) — chroma 인덱스는 라인 55 `**/chroma/`에서 ignore. eval/ground truth JSON은 추적 (D-8 / ADR 0015)
+data/qdrant/
 
 # IDE
 .idea/
