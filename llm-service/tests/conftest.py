@@ -69,7 +69,7 @@ def valid_token(jwt_secret: str) -> str:
             "exp": int(time.time()) + 3600,
         },
         jwt_secret,
-        algorithm="HS256",
+        algorithm="HS512",
     )
 
 
@@ -78,7 +78,7 @@ def expired_token(jwt_secret: str) -> str:
     return jwt.encode(
         {"sub": "1", "exp": int(time.time()) - 60},
         jwt_secret,
-        algorithm="HS256",
+        algorithm="HS512",
     )
 
 
@@ -87,5 +87,5 @@ def wrong_signature_token() -> str:
     return jwt.encode(
         {"sub": "1", "exp": int(time.time()) + 3600},
         "another-secret-that-differs-from-the-real-one",
-        algorithm="HS256",
+        algorithm="HS512",
     )
