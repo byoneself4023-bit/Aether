@@ -21,6 +21,7 @@ _TOOL_NAME_TO_FIELD: dict[str, str] = {
     "explain_risk_tool": "risk_analysis",
     "summarize_backtest_tool": "backtest_analysis",
     "get_recommendation_tool": "recommendation",
+    "search_knowledge_base": "knowledge_sources",  # D-5 / ADR 0018
 }
 
 
@@ -39,7 +40,7 @@ class ReActAgent(BaseAgent):
         self._agent = create_react_agent(
             model=self._model,
             tools=tool_reg.list_all(),
-            prompt=prompt_reg.get("react_system_prompt", "1.0").template,
+            prompt=prompt_reg.get("react_system_prompt", "1.1").template,
         )
 
     async def run(self, user_input: str, context: dict | None = None) -> dict[str, Any]:

@@ -111,6 +111,9 @@ class AnalysisResponse(BaseModel):
     backtest_analysis: dict | None = Field(default=None, description="백테스트 분석 결과")
     portfolio_data: PortfolioData = Field(..., description="원본 데이터")
     recommendation: dict | None = Field(default=None, description="투자 제안")
+    knowledge_sources: dict | None = Field(
+        default=None, description="RAG 도구 결과 (D-5 / ADR 0018)"
+    )
 
 
 # ============================================================

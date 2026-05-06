@@ -132,7 +132,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | 백엔드 서비스 수 | 4 | docs/agent-capability-audit/01_architecture.md:§1 |
 | 인프라 컴포넌트 수 | 2 (postgres, redis) | docker-compose.yml:6-40 |
 | 테스트 합산 | 535 (270/195/70) — D-1로 −20 (test_experiment 제거 / `#22`) | 본 § §4 갱신 |
-| 도구 등록 (tool_registry) | 4종 (analyze_portfolio / explain_risk / summarize_backtest / get_recommendation) | §10 + ADR 0005 |
+| 도구 등록 (tool_registry) | 5종 (analyze_portfolio / explain_risk / summarize_backtest / get_recommendation / **search_knowledge_base**) — D-5 RAG 통합 | §10 + ADR 0005 + ADR 0018 |
 | 등록 프롬프트 수 | 8 (v1.0) — T-1b로 react_system_prompt 추가 | prompt_registry.py + ADR 0006 |
 | chat.py:/api/chat/analyze LLM 호출 | **ReAct 1 호출** (USE_REACT_AGENT=true 기본) / 절차적 4 호출 (fallback) | §10 + ADR 0006 |
 | Gemini SDK | google-genai 1.74 (legacy google-generativeai 제거) — H-6 디벨롭 | requirements.txt + ADR 0007 |
@@ -146,6 +146,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | Vector store backend | **Qdrant default** (T-6b) — chromadb fallback (`VECTOR_STORE=chromadb` env). aether_knowledge 컬렉션 26 chunks / 3072차원 cosine | ADR 0009 + 0014 + 0016 |
 | RAG 평가 메트릭 | 4건 (relevance@k / recall@k / LLM-as-judge quality / faithfulness) — D-8 자체 구현 (ragas 미도입). ground truth 8건. CLI: `python -m scripts.eval_rag --no-llm-judge` (Gemini quota 회피) | ADR 0015 |
 | RAG Chunking 정책 | chunk_size=500 / overlap=300 (D-7 grid search 9 조합). Auto Research 본능 — `python -m scripts.grid_search_chunking`. relevance@k 0.7222 → 0.7413 (+0.0191) | ADR 0017 |
+| RAG 도구 통합 | ReAct 5번째 도구 (search_knowledge_base) — D-5 자율 판단. chat.py fallback `RAG_FALLBACK_DIRECT=true` (default). ReAct system prompt v1.1 (5 도구 + 판단 규칙) | ADR 0018 |
 | CACHE_MAXSIZE | 1000 (기본) — 인메모리 LRU 캐시 항목 수 | docker-compose.yml + portfolio config.py + .env.example |
 | CORS 명시 정책 | allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID] — D-2 통일 | ADR 0012 |
 | API 키 검증 (llm) | lifespan startup + config Pydantic validator 이중 안전장치 — D-2 (`#23`) | ADR 0012 |
