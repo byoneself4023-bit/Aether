@@ -9,6 +9,7 @@ import hashlib
 import json
 import time
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
@@ -54,19 +55,20 @@ class CacheBackend(ABC):
 
 class InMemoryCache(CacheBackend):
     """
-    인메모리 캐시 (단일 인스턴스용)
+    인메모리 LRU 캐시 (단일 인스턴스용, OrderedDict 기반 O(1) eviction)
 
     장점:
     - 외부 의존성 없음
-    - 매우 빠름
+    - LRU eviction O(1) (popitem(last=False))
+    - get() hit 시 키를 끝으로 이동 (move_to_end)
 
     단점:
     - 재시작 시 초기화
-    - 다중 인스턴스 시 캐시 공유 불가
+    - 다중 인스턴스 시 캐시 공유 불가 (시나리오 B 진입 시 RedisCache로 전환)
     """
 
     def __init__(self, max_size: int = 1000):
-        self._cache: dict[str, CacheEntry] = {}
+        self._cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self._max_size = max_size
 
     def get(self, key: str) -> Optional[Any]:
@@ -79,11 +81,17 @@ class InMemoryCache(CacheBackend):
             del self._cache[key]
             return None
 
+        # LRU: hit 시 키를 끝으로 이동 (가장 최근 사용)
+        self._cache.move_to_end(key)
         return entry.data
 
     def set(self, key: str, value: Any, ttl: int) -> None:
-        # 캐시 크기 제한 (LRU 유사 - 오래된 것부터 삭제)
-        if len(self._cache) >= self._max_size:
+        # 기존 키 갱신 시 끝으로 이동
+        if key in self._cache:
+            self._cache.move_to_end(key)
+
+        # 캐시 크기 제한 (LRU eviction)
+        elif len(self._cache) >= self._max_size:
             self._evict_oldest()
 
         self._cache[key] = CacheEntry(
@@ -99,15 +107,10 @@ class InMemoryCache(CacheBackend):
         self._cache.clear()
 
     def _evict_oldest(self) -> None:
-        """가장 오래된 엔트리 삭제"""
+        """가장 오랫동안 미사용 엔트리 삭제 (LRU, O(1))"""
         if not self._cache:
             return
-
-        oldest_key = min(
-            self._cache.keys(),
-            key=lambda k: self._cache[k].created_at
-        )
-        del self._cache[oldest_key]
+        self._cache.popitem(last=False)
 
     @property
     def size(self) -> int:
@@ -363,7 +366,7 @@ def get_cache() -> MarketDataCache:
         if redis_url:
             backend = RedisCache(redis_url)
         else:
-            backend = InMemoryCache()
+            backend = InMemoryCache(max_size=settings.cache_maxsize)
 
         _cache_instance = MarketDataCache(backend)
         logger.info(

@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     # 캐시 설정
     redis_url: Optional[str] = None  # None이면 인메모리 캐시 사용
     cache_ttl_prices: int = 3600  # 1시간
+    cache_maxsize: int = 1000  # 인메모리 LRU 캐시 최대 항목 수 (D-2 / ADR 0012)
 
     # 데이터 제공자 설정
     data_provider: str = "yfinance"  # 지원: "yfinance"
