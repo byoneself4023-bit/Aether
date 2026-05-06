@@ -22,10 +22,6 @@ class Settings(BaseSettings):
     # 백테스트 설정
     default_transaction_cost: float = 0.001  # 0.1%
 
-    # MLflow 설정
-    mlflow_tracking_uri: str = "./mlruns"
-    mlflow_experiment_name: str = "aether-portfolio-optimization"
-
     # 캐시 설정
     redis_url: Optional[str] = None  # None이면 인메모리 캐시 사용
     cache_ttl_prices: int = 3600  # 1시간
@@ -34,7 +30,7 @@ class Settings(BaseSettings):
     # 데이터 제공자 설정
     data_provider: str = "yfinance"  # 지원: "yfinance"
 
-    # 인증 (auth-service와 동일 HS256 비밀키 - 256bit 이상)
+    # 인증 (auth-service와 동일 HS512 비밀키 - F-1a / ADR 0004 v2)
     jwt_secret: str = ""
 
     model_config = SettingsConfigDict(
