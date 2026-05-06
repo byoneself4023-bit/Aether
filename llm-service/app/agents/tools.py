@@ -43,15 +43,17 @@ def get_tool_registry() -> ToolRegistry:
 
 
 def _register_default_tools(registry: ToolRegistry) -> None:
-    """기본 도구 4종 등록 (prompt_registry._register_default_prompts 미러)."""
+    """기본 도구 5종 등록 (D-5 / ADR 0018: search_knowledge_base 추가)."""
     from app.agents.portfolio_tools import (
         analyze_portfolio_tool,
         explain_risk_tool,
         get_recommendation_tool,
         summarize_backtest_tool,
     )
+    from app.agents.rag_tools import search_knowledge_base
 
     registry.register("analyze_portfolio", analyze_portfolio_tool)
     registry.register("explain_risk", explain_risk_tool)
     registry.register("summarize_backtest", summarize_backtest_tool)
     registry.register("get_recommendation", get_recommendation_tool)
+    registry.register("search_knowledge_base", search_knowledge_base)

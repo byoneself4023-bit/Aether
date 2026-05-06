@@ -56,16 +56,18 @@ class TestGetToolRegistry:
         reg2 = get_tool_registry()
         assert reg1 is reg2
 
-    def test_default_registers_4_tools(self):
+    def test_default_registers_5_tools(self):
+        # D-5 / ADR 0018: search_knowledge_base 추가 (4 → 5)
         from app.agents.tools import get_tool_registry
 
         reg = get_tool_registry()
         names = {t.name for t in reg.list_all()}
-        assert len(reg.list_all()) == 4
+        assert len(reg.list_all()) == 5
         assert "analyze_portfolio_tool" in names
         assert "explain_risk_tool" in names
         assert "summarize_backtest_tool" in names
         assert "get_recommendation_tool" in names
+        assert "search_knowledge_base" in names
 
 
 class TestPortfolioTools:

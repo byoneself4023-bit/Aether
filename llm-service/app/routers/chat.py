@@ -188,7 +188,10 @@ async def chat(
     logger.info(f"Chat request: {sanitized_message[:50]}..., tickers={tickers}")
 
     # 종목이 없으면 RAG 질문으로 처리
-    if len(tickers) < 2:
+    # D-5 / ADR 0018: RAG_FALLBACK_DIRECT default true (점진 전환). false 시 ReAct가 5 도구 자율 판단.
+    import os
+    rag_fallback_direct = os.getenv("RAG_FALLBACK_DIRECT", "true").lower() == "true"
+    if len(tickers) < 2 and rag_fallback_direct:
         try:
             wrapped_message = wrap_user_input(sanitized_message)
             rag_result = query_with_llm(wrapped_message, k=3)
@@ -209,6 +212,35 @@ async def chat(
             logger.error(f"RAG query failed: {e}")
             return ChatResponse(
                 answer=f"죄송합니다, 질문에 답변하는 중 오류가 발생했습니다: {e}",
+                sources=None,
+                portfolio_data=None,
+            )
+
+    if len(tickers) < 2:
+        # ReAct 5 도구 자율 판단 (RAG_FALLBACK_DIRECT=false 시)
+        try:
+            agent = ReActAgent()
+            tool_results = await agent.run(sanitized_message, context={})
+            ks = tool_results.get("knowledge_sources", {})
+            answer = ks.get("answer") if isinstance(ks, dict) else None
+            raw_sources = ks.get("sources", []) if isinstance(ks, dict) else []
+            sources = [
+                SourceInfo(
+                    title=s.get("title", ""),
+                    source=s.get("source", ""),
+                    relevance=s.get("relevance"),
+                )
+                for s in raw_sources
+            ]
+            return ChatResponse(
+                answer=answer or "ReAct agent 응답 없음 (RAG 도구 미호출).",
+                sources=sources if sources else None,
+                portfolio_data=None,
+            )
+        except Exception as e:
+            logger.error(f"ReAct agent failed: {e}")
+            return ChatResponse(
+                answer=f"죄송합니다, 응답 중 오류가 발생했습니다: {e}",
                 sources=None,
                 portfolio_data=None,
             )

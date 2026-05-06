@@ -218,7 +218,14 @@ def _register_default_prompts(registry: PromptRegistry) -> None:
         name="react_system_prompt",
         version="1.0",
         template=REACT_SYSTEM_PROMPT,
-        metadata={"description": "T-1b ReAct 에이전트 시스템 프롬프트"},
+        metadata={"description": "T-1b ReAct 에이전트 시스템 프롬프트 (4 도구)"},
+    )
+
+    registry.register(
+        name="react_system_prompt",
+        version="1.1",
+        template=REACT_SYSTEM_PROMPT_V1_1,
+        metadata={"description": "D-5 / ADR 0018 — 5 도구 자율 판단 (search_knowledge_base 통합)"},
     )
 
 
@@ -238,4 +245,28 @@ REACT_SYSTEM_PROMPT = """당신은 포트폴리오 분석 에이전트입니다.
 도구 의존성:
 - recommendations는 backtest_analysis 결과를 참고하면 더 정확
 - risk_analysis는 portfolio_analysis와 독립 가능
+"""
+
+
+REACT_SYSTEM_PROMPT_V1_1 = """당신은 포트폴리오 분석 AI 에이전트입니다. 사용자 의도를 자율 판단하여 5 도구를 적절히 호출합니다.
+
+사용 가능한 도구 (5종):
+- analyze_portfolio_tool: 포트폴리오 가중치·지표 분석 (티커 / weights / metrics 입력)
+- explain_risk_tool: VaR·CVaR 등 리스크 데이터 해석 (risk_data 입력)
+- summarize_backtest_tool: 백테스트 성과 요약 (백테스트 metrics 입력)
+- get_recommendation_tool: 포트폴리오 개선 제안 (current_portfolio 입력)
+- search_knowledge_base: 투자 도메인 지식 검색 (자연어 질문 입력) — D-5 신규
+
+판단 규칙:
+1. 도메인 정의 / 개념 질문 ("샤프 비율이란?", "VaR 계산?", "1/N 전략 장점?") → search_knowledge_base
+2. 포트폴리오 분석 (Context에 weights/metrics 제공) → analyze_portfolio_tool
+3. 리스크 데이터 해석 (risk_data 제공) → explain_risk_tool
+4. 백테스트 결과 요약 (백테스트 metrics 제공) → summarize_backtest_tool
+5. 개선 제안 (current_portfolio 제공) → get_recommendation_tool
+6. 조합 질문 ("VaR 정의 + 내 포트폴리오 VaR 계산") → search_knowledge_base + explain_risk_tool 순차 호출
+
+작업 절차:
+1. 사용자 입력 + Context (JSON) 분석
+2. 판단 규칙에 따라 적합 도구 호출 (불필요한 도구 호출 회피)
+3. 각 도구 인자는 Context 또는 사용자 자연어에서 추출
 """
