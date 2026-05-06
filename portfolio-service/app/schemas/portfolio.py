@@ -43,16 +43,6 @@ class OptimizeRequest(BaseModel):
         default=False,
         description="최적화 진단 정보 포함 여부"
     )
-    previous_weights: Optional[dict[str, float]] = Field(
-        default=None,
-        description="이전 비중 (비중 변화 알림용)"
-    )
-    weight_change_threshold: float = Field(
-        default=0.1,
-        ge=0.01,
-        le=0.5,
-        description="비중 변화 알림 임계값 (10% = 0.1)"
-    )
     rf: float = Field(
         default=0.02,
         ge=0,
@@ -99,44 +89,6 @@ class OptimizationDiagnosticsResponse(BaseModel):
     )
 
 
-class WeightChangeAlertResponse(BaseModel):
-    """개별 자산 비중 변화 알림"""
-    asset: str = Field(..., description="자산 티커")
-    old_weight: float = Field(..., description="이전 비중")
-    new_weight: float = Field(..., description="새 비중")
-    change_pct: float = Field(..., description="변화량 (퍼센트 포인트)")
-    change_direction: str = Field(..., description="변화 방향 (increase/decrease/added/removed)")
-
-
-class WeightComparisonResponse(BaseModel):
-    """비중 비교 결과"""
-    total_turnover: float = Field(..., description="총 턴오버")
-    alerts: list[WeightChangeAlertResponse] = Field(..., description="임계값 초과 변화 목록")
-    max_change_asset: Optional[str] = Field(None, description="가장 큰 변화 자산")
-    max_change_pct: float = Field(..., description="가장 큰 변화 퍼센트")
-
-
-class DriftMetrics(BaseModel):
-    """드리프트 상세 메트릭"""
-    volatility: dict = Field(..., description="변동성 드리프트 메트릭")
-    correlation: dict = Field(..., description="상관관계 드리프트 메트릭")
-    market_regime: str = Field(..., description="시장 레짐 (normal/stressed/crisis)")
-
-
-class DriftWarning(BaseModel):
-    """드리프트 경고"""
-    has_drift: bool = Field(..., description="드리프트 감지 여부")
-    drift_type: Optional[str] = Field(
-        None, description="드리프트 유형 (volatility/correlation/combined)"
-    )
-    severity: str = Field(..., description="심각도 (low/medium/high/critical)")
-    recommendation: str = Field(..., description="권장 조치")
-    affected_assets: Optional[list[str]] = Field(
-        None, description="영향받는 자산 리스트"
-    )
-    metrics: Optional[DriftMetrics] = Field(None, description="상세 메트릭")
-
-
 class OptimizeResponse(BaseModel):
     """포트폴리오 최적화 응답"""
     weights: dict[str, float] = Field(
@@ -154,17 +106,9 @@ class OptimizeResponse(BaseModel):
         default=None,
         description="효율적 프론티어 (요청 시)"
     )
-    drift_warning: Optional[DriftWarning] = Field(
-        default=None,
-        description="시장 드리프트 경고 (최근 변동성/상관관계 변화)"
-    )
     diagnostics: Optional[OptimizationDiagnosticsResponse] = Field(
         default=None,
         description="최적화 진단 정보 (include_diagnostics=True일 때)"
-    )
-    weight_alerts: Optional[WeightComparisonResponse] = Field(
-        default=None,
-        description="비중 변화 알림 (previous_weights 제공 시)"
     )
     # Graceful 실패 관련 필드
     failed_tickers: Optional[list[str]] = Field(

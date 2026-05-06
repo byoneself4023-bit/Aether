@@ -9,12 +9,8 @@ from app.schemas.portfolio import (
     OptimizeResponse,
     PortfolioMetricsResponse,
     FrontierPoint,
-    DriftWarning,
-    DriftMetrics,
     OptimizationDiagnosticsResponse,
     CovarianceValidationResponse,
-    WeightComparisonResponse,
-    WeightChangeAlertResponse,
 )
 from app.services.data import (
     get_returns_and_covariance,
@@ -29,23 +25,14 @@ from app.services.optimizer import (
     optimize_max_sharpe_with_diagnostics,
     efficient_frontier,
 )
-from app.services.drift_detector import (
-    analyze_drift,
-    create_drift_report,
-    DriftSeverity,
-)
 from app.utils.covariance import annualize, annualize_returns
 from app.middleware.logging import logger, log_optimization_context
-from app.services.weight_monitor import compare_weights
 from app.metrics import (
     OptimizationMetricsContext,
     record_condition_number,
 )
 
 router = APIRouter(prefix="/api", tags=["optimize"])
-
-# 드리프트 탐지를 위한 최근 기간 (거래일)
-DRIFT_RECENT_DAYS = 20
 
 
 @router.post("/optimize", response_model=OptimizeResponse)
@@ -154,41 +141,6 @@ def optimize_portfolio(
                 for ticker, w in zip(valid_tickers, result.weights)
             }
 
-            # 드리프트 탐지 (최근 20일 vs 나머지)
-            drift_warning = None
-            if len(returns_df) > DRIFT_RECENT_DAYS + 60:  # 충분한 데이터가 있을 때만
-                recent_returns = returns_df.iloc[-DRIFT_RECENT_DAYS:].values
-                historical_returns = returns_df.iloc[:-DRIFT_RECENT_DAYS].values
-
-                drift_analysis = analyze_drift(
-                    recent_returns=recent_returns,
-                    historical_returns=historical_returns,
-                    asset_names=valid_tickers
-                )
-
-                # 드리프트 감지 시 경고 포함
-                if drift_analysis.overall_drift:
-                    drift_report = create_drift_report(drift_analysis, valid_tickers)
-
-                    drift_warning = DriftWarning(
-                        has_drift=drift_report.has_drift,
-                        drift_type=drift_report.drift_type,
-                        severity=drift_report.severity.value,
-                        recommendation=drift_report.recommendation,
-                        affected_assets=drift_report.affected_assets,
-                        metrics=DriftMetrics(
-                            volatility=drift_report.metrics["volatility"],
-                            correlation=drift_report.metrics["correlation"],
-                            market_regime=drift_report.metrics["market_regime"]
-                        )
-                    )
-
-                    logger.warning(
-                        "drift_warning_included_in_response",
-                        drift_type=drift_report.drift_type,
-                        severity=drift_report.severity.value
-                    )
-
             # 효율적 프론티어 (요청 시)
             frontier_points = None
             if request.include_frontier:
@@ -208,41 +160,6 @@ def optimize_portfolio(
                         frontier.weights
                     )
                 ]
-
-            # 비중 변화 알림 (previous_weights 제공 시)
-            weight_alerts_response = None
-            if request.previous_weights:
-                comparison = compare_weights(
-                    old_weights=request.previous_weights,
-                    new_weights=weights_dict,
-                    threshold=request.weight_change_threshold
-                )
-
-                weight_alerts_response = WeightComparisonResponse(
-                    total_turnover=comparison.total_turnover,
-                    alerts=[
-                        WeightChangeAlertResponse(
-                            asset=alert.asset,
-                            old_weight=alert.old_weight,
-                            new_weight=alert.new_weight,
-                            change_pct=alert.change_pct,
-                            change_direction=alert.change_direction
-                        )
-                        for alert in comparison.alerts
-                    ],
-                    max_change_asset=comparison.max_change_asset,
-                    max_change_pct=comparison.max_change_pct
-                )
-
-                # 큰 비중 변화 시 경고 로깅
-                if comparison.alerts:
-                    logger.warning(
-                        "significant_weight_changes",
-                        total_turnover=comparison.total_turnover,
-                        n_alerts=len(comparison.alerts),
-                        max_change_asset=comparison.max_change_asset,
-                        max_change_pct=comparison.max_change_pct
-                    )
 
             # 부분 실패 시 경고 메시지 추가
             if failed_tickers:
@@ -265,9 +182,7 @@ def optimize_portfolio(
                         if request.start_date and request.end_date
                         else request.period or "3y"),
                 frontier=frontier_points,
-                drift_warning=drift_warning,
                 diagnostics=diagnostics_response,
-                weight_alerts=weight_alerts_response,
                 failed_tickers=failed_tickers if failed_tickers else None,
                 warnings=all_warnings if all_warnings else None
             )

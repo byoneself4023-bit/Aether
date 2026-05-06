@@ -22,14 +22,6 @@ from app.services.data import (
     get_ticker_info,
     get_returns_and_covariance,
 )
-from app.services.experiment import (
-    run_optimization_experiment,
-    compare_covariance_methods,
-    run_backtest_experiment,
-    get_recent_experiments,
-    get_best_run,
-)
-
 __all__ = [
     "optimize_min_variance",
     "optimize_max_sharpe",
@@ -45,9 +37,4 @@ __all__ = [
     "fetch_prices",
     "get_ticker_info",
     "get_returns_and_covariance",
-    "run_optimization_experiment",
-    "compare_covariance_methods",
-    "run_backtest_experiment",
-    "get_recent_experiments",
-    "get_best_run",
 ]
