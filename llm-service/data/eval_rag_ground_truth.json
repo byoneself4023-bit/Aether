@@ -1,0 +1,50 @@
+[
+  {
+    "question": "샤프 비율이란 무엇인가요?",
+    "expected_source": "portfolio_theory",
+    "expected_title": "샤프 비율 (Sharpe Ratio)",
+    "expected_keywords": ["Sharpe", "위험조정수익률", "변동성", "초과수익률"]
+  },
+  {
+    "question": "효율적 프론티어란 무엇인가요?",
+    "expected_source": "portfolio_theory",
+    "expected_title": "효율적 프론티어 (Efficient Frontier)",
+    "expected_keywords": ["효율적", "프론티어", "최대 기대수익률", "최소 리스크"]
+  },
+  {
+    "question": "최소분산 포트폴리오(MVP)는 어떤 투자자에게 적합한가요?",
+    "expected_source": "portfolio_theory",
+    "expected_title": "최소분산 포트폴리오 (MVP)",
+    "expected_keywords": ["MVP", "변동성", "리스크 회피", "안정성"]
+  },
+  {
+    "question": "VaR(Value at Risk)란 무엇인가요?",
+    "expected_source": "risk_management",
+    "expected_title": "VaR (Value at Risk)",
+    "expected_keywords": ["VaR", "신뢰수준", "최대 예상 손실", "정상적인 시장"]
+  },
+  {
+    "question": "CVaR와 VaR의 차이는 무엇인가요?",
+    "expected_source": "risk_management",
+    "expected_title": "CVaR (Conditional VaR / Expected Shortfall)",
+    "expected_keywords": ["CVaR", "Expected Shortfall", "tail risk", "VaR보다 보수적"]
+  },
+  {
+    "question": "동일 비중 포트폴리오(1/N) 전략의 장점은?",
+    "expected_source": "investment_strategies",
+    "expected_title": "동일 비중 포트폴리오 (1/N: Equal Weight)",
+    "expected_keywords": ["1/N", "동일", "분산투자", "추정 오차"]
+  },
+  {
+    "question": "리스크 패리티 전략의 원리는?",
+    "expected_source": "investment_strategies",
+    "expected_title": "리스크 패리티 (Risk Parity)",
+    "expected_keywords": ["Risk Parity", "리스크 기여도", "변동성", "동일"]
+  },
+  {
+    "question": "S&P 500에서 정보기술 섹터의 비중과 특성은?",
+    "expected_source": "sector_analysis",
+    "expected_title": "정보기술 (Information Technology)",
+    "expected_keywords": ["정보기술", "Apple", "AI", "성장성"]
+  }
+]
