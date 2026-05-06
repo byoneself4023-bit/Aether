@@ -73,6 +73,7 @@ services:
       - PYTHONUNBUFFERED=1
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
       - JWT_SECRET=${JWT_SECRET}
+      - CACHE_MAXSIZE=${CACHE_MAXSIZE:-1000}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
       interval: 30s

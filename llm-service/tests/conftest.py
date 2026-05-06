@@ -5,8 +5,9 @@ from __future__ import annotations
 import os
 import time
 
-# JWT_SECRET이 모듈 로드 전에 set돼야 함 (Settings는 lru_cache)
+# JWT_SECRET / GOOGLE_API_KEY가 모듈 로드 전에 set돼야 함 (Settings는 lru_cache + validator)
 os.environ.setdefault("JWT_SECRET", "test-secret-for-pytest-only-must-be-32-bytes-min")
+os.environ.setdefault("GOOGLE_API_KEY", "test-google-api-key-for-pytest-only")
 
 import jwt
 import pytest

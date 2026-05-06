@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -47,6 +48,16 @@ class Settings(BaseSettings):
     use_react_agent: bool = True
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    @field_validator("google_api_key")
+    @classmethod
+    def google_api_key_must_be_present(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError(
+                "GOOGLE_API_KEY is required (set GEMINI_API_KEY env var). "
+                "See .env.example. D-2 / ADR 0012 lifespan + config 이중 검증."
+            )
+        return v
 
 
 @lru_cache

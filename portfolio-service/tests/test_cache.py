@@ -105,6 +105,65 @@ class TestInMemoryCache:
         assert cache.size == 2
 
 
+class TestInMemoryCacheLRU:
+    """LRU eviction 검증 (D-2 / ADR 0012)"""
+
+    def test_lru_eviction_evicts_oldest_unaccessed(self):
+        """LRU: get 하지 않은 가장 오래된 항목이 evicted"""
+        cache = InMemoryCache(max_size=3)
+        cache.set("a", "v_a", ttl=60)
+        cache.set("b", "v_b", ttl=60)
+        cache.set("c", "v_c", ttl=60)
+
+        # b, c hit → a가 가장 오래 미사용
+        cache.get("b")
+        cache.get("c")
+
+        # 새 항목 추가 시 LRU 정책으로 'a' eviction
+        cache.set("d", "v_d", ttl=60)
+
+        assert cache.size == 3
+        assert cache.get("a") is None
+        assert cache.get("b") == "v_b"
+        assert cache.get("c") == "v_c"
+        assert cache.get("d") == "v_d"
+
+    def test_lru_get_moves_key_to_end(self):
+        """LRU: get hit 시 키가 끝으로 이동하여 eviction 대상에서 밀림"""
+        cache = InMemoryCache(max_size=2)
+        cache.set("a", "v_a", ttl=60)
+        cache.set("b", "v_b", ttl=60)
+
+        # a hit → 끝으로 이동 (b가 가장 오래 미사용)
+        cache.get("a")
+
+        # 새 항목 추가 시 b가 evicted (a는 보존)
+        cache.set("c", "v_c", ttl=60)
+
+        assert cache.size == 2
+        assert cache.get("a") == "v_a"
+        assert cache.get("b") is None
+        assert cache.get("c") == "v_c"
+
+    def test_max_size_from_settings_default(self):
+        """settings.cache_maxsize 기본값 (1000) 적용 검증"""
+        from app.config import get_settings
+
+        settings = get_settings()
+        assert settings.cache_maxsize == 1000
+
+    def test_max_size_custom_value(self):
+        """InMemoryCache(max_size=N) 매개변수가 정확히 적용"""
+        cache = InMemoryCache(max_size=5)
+        for i in range(7):
+            cache.set(f"key_{i}", i, ttl=60)
+        assert cache.size == 5
+        # FIFO 순서로 oldest 2건 evicted (key_0 / key_1)
+        assert cache.get("key_0") is None
+        assert cache.get("key_1") is None
+        assert cache.get("key_6") == 6
+
+
 class TestMarketDataCache:
     """MarketDataCache 테스트"""
 

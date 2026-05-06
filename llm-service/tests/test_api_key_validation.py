@@ -1,22 +1,25 @@
-"""Critical #1: API 키 하드코딩 제거 테스트"""
+"""Critical #1: API 키 하드코딩 제거 테스트 + D-2 validator 강화 검증"""
 
 import pytest
+from pydantic import ValidationError
 from unittest.mock import patch
 
 from app.config import Settings
 
 
 class TestApiKeyRemoval:
-    """API 키가 하드코딩되지 않았는지 확인"""
+    """API 키가 하드코딩되지 않았는지 확인 + D-2 (ADR 0012) validator 검증"""
 
-    def test_default_api_key_is_empty(self):
-        """config.py 기본 google_api_key가 빈 문자열인지 확인"""
+    def test_empty_api_key_raises_validation_error(self):
+        """D-2 / ADR 0012: 빈 문자열 google_api_key는 ValidationError 발생 (config-level fail-fast)"""
         with patch.dict("os.environ", {}, clear=True):
-            settings = Settings(
-                _env_file=None,
-                google_api_key="",
-            )
-            assert settings.google_api_key == ""
+            with pytest.raises(ValidationError, match="GOOGLE_API_KEY is required"):
+                Settings(_env_file=None, google_api_key="")
+
+    def test_whitespace_api_key_raises_validation_error(self):
+        """D-2 / ADR 0012: 공백 문자열도 ValidationError 발생"""
+        with pytest.raises(ValidationError, match="GOOGLE_API_KEY is required"):
+            Settings(_env_file=None, google_api_key="   ")
 
     def test_api_key_from_env(self):
         """환경변수로 API 키 설정 시 정상 동작"""
