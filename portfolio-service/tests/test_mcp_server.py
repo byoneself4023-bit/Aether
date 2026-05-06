@@ -5,13 +5,14 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
 
-PROJECT = "/Users/kuka/Aether/portfolio-service"
+PROJECT = str(Path(__file__).resolve().parent.parent)
 
 
 def _params() -> StdioServerParameters:
