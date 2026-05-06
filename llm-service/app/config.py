@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     rag_chunk_size: int = 1000
     rag_chunk_overlap: int = 200
 
-    # T-6: 벡터 DB 토글 (chromadb | qdrant)
-    vector_store: str = "chromadb"
+    # T-6: 벡터 DB 토글 (chromadb | qdrant). T-6b 머지로 default qdrant 정착 (ADR 0016).
+    vector_store: str = "qdrant"
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "aether_knowledge"
 
