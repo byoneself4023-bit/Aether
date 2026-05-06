@@ -146,6 +146,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | CACHE_MAXSIZE | 1000 (기본) — 인메모리 LRU 캐시 항목 수 | docker-compose.yml + portfolio config.py + .env.example |
 | CORS 명시 정책 | allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID] — D-2 통일 | ADR 0012 |
 | API 키 검증 (llm) | lifespan startup + config Pydantic validator 이중 안전장치 — D-2 (`#23`) | ADR 0012 |
+| Frontend 페이지 LOC 임계 | 200 LOC (페이지 50 LOC 이하 = 컴포넌트 조합만) — D-3 (`#25`) | ADR 0013 |
 | 분산 트레이싱 forward | X-Request-ID + Authorization (httpx event_hooks) | §9 |
 | MCP 서버 도구 | 4종 (analyze_portfolio / compute_risk / run_backtest / get_recommendation, stdio transport) | docs/adr/0008-mcp-server-adoption.md + portfolio-service/app/mcp_server.py |
 | Top 10 진행 상황 | **9.5/10** (T-3 Multi-Agent 보류 결정 — 시나리오 A 일관성 + Houseman Phase 7-12 학습 적용 통합) | docs/agent-capability-audit/EVOLUTION.md + docs/adr/0010-t3-multi-agent-deferred.md |
