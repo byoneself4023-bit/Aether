@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     # 외부 서비스
     portfolio_service_url: str = "http://localhost:8001"
 
-    # 인증 (auth-service와 동일 HS256 비밀키 - 256bit 이상)
+    # 인증 (auth-service와 동일 HS512 비밀키 - F-1a / ADR 0004 v2)
     jwt_secret: str = ""
 
     # T-1b: ReAct 토글 (USE_REACT_AGENT=false면 절차적 호출 fallback)
