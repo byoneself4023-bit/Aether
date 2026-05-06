@@ -145,6 +145,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | 보류 기능 (시나리오 A 본질 X) | 4건 (MLflow / drift_warning / weight_alerts / RAG 데이터 정제) — D-1 (`#22`) + D-9 보류 | ADR 0011 + ADR 0014 |
 | Vector store backend | **Qdrant default** (T-6b) — chromadb fallback (`VECTOR_STORE=chromadb` env). aether_knowledge 컬렉션 26 chunks / 3072차원 cosine | ADR 0009 + 0014 + 0016 |
 | RAG 평가 메트릭 | 4건 (relevance@k / recall@k / LLM-as-judge quality / faithfulness) — D-8 자체 구현 (ragas 미도입). ground truth 8건. CLI: `python -m scripts.eval_rag --no-llm-judge` (Gemini quota 회피) | ADR 0015 |
+| RAG Chunking 정책 | chunk_size=500 / overlap=300 (D-7 grid search 9 조합). Auto Research 본능 — `python -m scripts.grid_search_chunking`. relevance@k 0.7222 → 0.7413 (+0.0191) | ADR 0017 |
 | CACHE_MAXSIZE | 1000 (기본) — 인메모리 LRU 캐시 항목 수 | docker-compose.yml + portfolio config.py + .env.example |
 | CORS 명시 정책 | allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID] — D-2 통일 | ADR 0012 |
 | API 키 검증 (llm) | lifespan startup + config Pydantic validator 이중 안전장치 — D-2 (`#23`) | ADR 0012 |

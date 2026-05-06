@@ -27,8 +27,9 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = "./data/chroma"
     embedding_model: str = "models/gemini-embedding-001"
     rag_top_k: int = 5
-    rag_chunk_size: int = 1000
-    rag_chunk_overlap: int = 200
+    # D-7 / ADR 0017: grid search 9 조합 결과 — chunk_size=500/overlap=300이 relevance@k 0.7413 (1000/200 baseline 0.7222 대비 +0.0191 향상)
+    rag_chunk_size: int = 500
+    rag_chunk_overlap: int = 300
 
     # T-6: 벡터 DB 토글 (chromadb | qdrant). T-6b 머지로 default qdrant 정착 (ADR 0016).
     vector_store: str = "qdrant"
