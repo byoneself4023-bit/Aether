@@ -19,12 +19,15 @@ T-2 (MCP 서버) 진입 전 호출자 인증 베이스 + 분산 트레이싱이 
 
 ## 결정
 
-### 1. JWT 검증: HS256 공유 비밀키 (현행 유지)
+### 1. JWT 검증: HS512 공유 비밀키 (단일 알고리즘)
 
-`auth-service`가 `Keys.hmacShaKeyFor(jwtProperties.getSecret())` (HS256, `JwtTokenProvider.java:41-43`)로 토큰을 발급한다. python 서비스(llm/portfolio)는 동일 비밀키 + `pyjwt.decode(..., algorithms=["HS256"])`로 검증한다.
+`auth-service`가 `Keys.hmacShaKeyFor(jwtProperties.getSecret())` (`JwtTokenProvider.java:41-43`)로 토큰을 발급한다. jjwt 라이브러리는 비밀키 길이가 64 bytes 이상일 때 자동으로 **HS512**를 선택하며, 본 프로젝트의 `JWT_SECRET`은 이 임계값을 충족해 실측 발급 토큰 헤더가 `{"alg":"HS512"}`로 확정된다 (F-1 검증 결과 인용).
+
+python 서비스(llm/portfolio)는 동일 비밀키 + `pyjwt.decode(..., algorithms=["HS512"])`로 검증한다 (`*/middleware/auth.py`).
 
 - 비밀키는 환경변수 `JWT_SECRET`로 주입. `docker-compose.yml`에서 세 서비스(auth/llm/portfolio)가 동일 값 공유.
 - FastAPI dependency: `app/middleware/auth.py::verify_jwt` — Authorization 헤더가 없거나 디코드 실패 시 401.
+- **검증 측 일관성 의무**: 발급 알고리즘 변경 시 검증 측 `algorithms=[...]` 동시 갱신. 단일 알고리즘 명시 (호환 모드 X — 보안 약화 방지).
 
 ### 2. 적용 단위: 라우터 시그니처에 1줄 추가
 
@@ -95,7 +98,7 @@ H-10은 단순 보안 패치가 아니다. **호출자 정보를 모든 도메�
 
 ### H-10b — RS256 + JWKS 마이그레이션
 
-HS256은 비밀키가 모든 서비스에 평문으로 분산된다. 환경변수 leak 시 토큰 위조 가능. RS256으로 마이그레이션하면:
+HS512는 비밀키가 모든 서비스에 평문으로 분산된다. 환경변수 leak 시 토큰 위조 가능. RS256으로 마이그레이션하면:
 
 - `auth-service`만 RSA 사설키 보유 (서명).
 - `llm-service` / `portfolio-service`는 공개키만 보관 (검증).
@@ -105,9 +108,18 @@ HS256은 비밀키가 모든 서비스에 평문으로 분산된다. 환경변�
 
 - `auth-service` JWKS 컨트롤러 + Spring Security 재설정 (2~3 파일 신규).
 - `llm-service` / `portfolio-service`는 `pyjwt`의 `JWKClient` + `algorithms=["RS256"]`로 변경 (verify_jwt 1 함수 수정).
-- 기존 발급 토큰 호환을 위한 마이그레이션 윈도우 (RS256 + HS256 dual-verify) 단계 필요.
+- 기존 발급 토큰 호환을 위한 마이그레이션 윈도우 (RS256 + HS512 dual-verify) 단계 필요.
 
 본 카드(H-10/L-7) 책임은 "verify_jwt 정착"이지 "auth-service 알고리즘 변경"이 아니므로 분리 (CLAUDE.md §6 1카드 1책임). H-10b는 보안 취약 분석 강도가 올라갈 때 우선순위 격상.
+
+---
+
+## 갱신 이력
+
+| 일자 | 버전 | 변경 |
+|---|---|---|
+| 2026-05-01 | v1 | 초기 Accepted (H-10 + L-7 카드 산출) — HS256 명시 |
+| 2026-05-06 | v2 | F-1 (PR #20) 검증에서 auth-service 실측 발급 알고리즘이 **HS512**임을 확인 (jjwt 자동 선택). portfolio/llm 검증 측 `algorithms=["HS256"]` 누락 동기화로 도메인 라우터 3개 (optimize/backtest/chat) 401 차단. F-1a 카드에서 양 측 HS512 통일 + "검증 측 일관성 의무" 명시 추가. |
 
 ### L-7b — 분산 trace ID 표준 (W3C Trace Context)
 

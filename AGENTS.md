@@ -140,6 +140,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | llm-service Python | 3.11-slim | llm-service/Dockerfile:2 |
 | LLM 호출 timeout | 60초 (httpx) | portfolio_client.py |
 | CI 백엔드 병렬 stage | 3 (portfolio/llm/auth) | Jenkinsfile:36-77 |
+| JWT 알고리즘 | HS512 단일 (호환 모드 X) — F-1a (`#21`) 통일 | §9 + ADR 0004 v2 |
 | JWT 검증 적용 라우터 | 17 (llm 9 + portfolio 8) | §9 + ADR 0004 |
 | 분산 트레이싱 forward | X-Request-ID + Authorization (httpx event_hooks) | §9 |
 | MCP 서버 도구 | 4종 (analyze_portfolio / compute_risk / run_backtest / get_recommendation, stdio transport) | docs/adr/0008-mcp-server-adoption.md + portfolio-service/app/mcp_server.py |
@@ -163,9 +164,9 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 
 ## §9. 인증 · 분산 트레이싱 (H-10 + L-7)
 
-### JWT 검증 (HS256 공유 비밀키)
+### JWT 검증 (HS512 공유 비밀키)
 
-- 알고리즘: **HS256** — `auth-service` `JwtTokenProvider.java:41-43` (`Keys.hmacShaKeyFor`) ↔ python 서비스 `pyjwt.decode(..., algorithms=["HS256"])`. ADR 0004 참조.
+- 알고리즘: **HS512** — `auth-service` `JwtTokenProvider.java:41-43` (`Keys.hmacShaKeyFor`, jjwt가 비밀키 길이 64 bytes 이상에서 HS512 자동 선택) ↔ python 서비스 `pyjwt.decode(..., algorithms=["HS512"])`. F-1a (`#21`)에서 양 측 통일. ADR 0004 v2 참조.
 - 비밀키: `JWT_SECRET` 환경변수. 세 서비스(auth/llm/portfolio)가 동일 값 공유 (`docker-compose.yml`).
 - 검증 dependency: `app/middleware/auth.py::verify_jwt`. 라우터에 `user: dict = Depends(verify_jwt)` 1줄 추가.
 - 적용 17건 + 면제 7건 (`/health`, `/`, `/metrics`, `/tokens`) — 카드 08:§결정2/3.

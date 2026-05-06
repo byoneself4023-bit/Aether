@@ -1,4 +1,4 @@
-"""JWT 검증 FastAPI dependency - HS256 공유 비밀키 (auth-service와 동일 키)"""
+"""JWT 검증 FastAPI dependency - HS512 공유 비밀키 (auth-service와 동일 키)"""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ async def verify_jwt(
             detail="JWT_SECRET not configured",
         )
     try:
-        payload = jwt.decode(token, _settings.jwt_secret, algorithms=["HS256"])
+        payload = jwt.decode(token, _settings.jwt_secret, algorithms=["HS512"])
     except jwt.ExpiredSignatureError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
