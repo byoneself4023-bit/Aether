@@ -29,8 +29,7 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-2xl font-bold text-white mb-2">다시 오셨군요!</h1>
-        <p className="text-zinc-400">포트폴리오 성과 요약입니다.</p>
+        <p className="text-zinc-400 -mt-1">포트폴리오 성과 요약입니다.</p>
       </div>
 
       {/* Demo Banner */}

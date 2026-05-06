@@ -52,7 +52,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <h1 className="text-lg font-semibold text-white">{title}</h1>
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">{title}</h1>
       </div>
 
       <div className="flex items-center gap-3">
