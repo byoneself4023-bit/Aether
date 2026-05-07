@@ -150,8 +150,9 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | Streaming SSE | `POST /api/chat/stream` — D-6 신규 endpoint (기존 /api/chat 0 변경). LangGraph `astream_events` v2 / token + tool events / format `data: {json}\n\n` / 우대 요건 4 직격 | ADR 0019 |
 | D-4 Audit baseline | 카드 14건 머지 / WORK_PATTERNS 17/18 해소 / 14,414 LOC / 635 테스트 / 19→**20** ADR / 누적 자료 3,354 LOC | AUDIT.md + ADR 0020 |
 | PRINCIPLES 패턴 | 7 → **10** (P-1 / §8 신규 endpoint 분리 / §9 Auto Research / §10 G1 본질 트리거 정정) | PRINCIPLES.md + ADR 0021 |
-| KARPATHY 매칭 | 8 본능 평균 76 → **87점** (Skill 95 / Auto Research 90 / Reversibility 90 등) — 면접 답변 5 영역 매핑 | KARPATHY_MAPPING.md + ADR 0021 |
+| KARPATHY 매칭 | 8 본능 평균 76 → **87점** (Skill 95 / Auto Research 90 / Reversibility 90 등) — 면접 답변 5 영역 매핑. V-1b: §1 재작성 (영상 9 항목 ↔ Aether 매핑 / 3 영역 통합) + §부록 6건 쿠카 영역. §2-§6 = 영구 보류 (ADR 0023) | KARPATHY_MAPPING.md + ADR 0021 + ADR 0023 |
 | V-0 / V-1 baseline | V-0 DIGEST.md 812 LOC + KARPATHY_LECTURE.md 605 LOC 통합 (누적 자료 12 파일). V-1 의문 7건 검증 — 부족 5 (V-1b 트리거) + 부분 충분 2. V-1b 의무 5건 정착 (KARPATHY §1 재작성 / LECTURE 단어 위생 / 6건 쿠카 영역 이동 / 매칭 점수 재계산 / 면접 답변 재검토). 양면 정책 12 ADR (0011-**0022**) | DIGEST.md + VERIFICATION_v2.md + ADR 0022 |
+| V-1b baseline | V-1 검증 결과 적용 — 의무 5건 → 2건 정정 (§6 면접 답변 = I-1 영역 / 6건 쿠카 영역 분산 = 영구 보류). 정착 영역: KARPATHY_MAPPING §1 재작성 (영상 9 항목 ↔ Aether 매핑 / 3 영역 통합) + §부록 6건 쿠카 영역 인용 위치. KARPATHY_LECTURE.md 단어 위생 전 본문 정정 (605 LOC / 5 위반 어휘 grep = 0건). 영구 보류 6건 (§2-§6 + 6 쿠카 영역 분산). **양면 정책 13 ADR (0011-0023)** | KARPATHY_MAPPING.md + KARPATHY_LECTURE.md + ADR 0023 |
 | CACHE_MAXSIZE | 1000 (기본) — 인메모리 LRU 캐시 항목 수 | docker-compose.yml + portfolio config.py + .env.example |
 | CORS 명시 정책 | allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID] — D-2 통일 | ADR 0012 |
 | API 키 검증 (llm) | lifespan startup + config Pydantic validator 이중 안전장치 — D-2 (`#23`) | ADR 0012 |
