@@ -4,8 +4,8 @@
 > **인터뷰어**: Sarah Guo (Conviction)
 > **본문 영역**: 약 53분 / 약 4500 줄
 > **정리 일자**: 2026-05-07
-> **본질**: 카파시가 인터뷰에서 본격 이야기한 14 영역 핵심 내용 + 직접 인용 + 사례 정착
-> **결론 한 줄**: AI Psychosis 시점에 카파시가 정착한 작업 패러다임 — 코드 줄 X / 카드 단위 위임 / 인간 = 시스템 병목 X / 에이전트 인지 자료 본문 본격 정착.
+> **본질**: 카파시가 인터뷰에서 다룬 14 영역 핵심 내용 + 직접 인용 + 사례 정착
+> **결론 한 줄**: AI Psychosis 시점에 카파시가 정착한 작업 패러다임 — 코드 줄 X / 카드 단위 위임 / 인간 = 시스템 병목 X / 에이전트 인지 자료 본문 정착.
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### 카파시 본문
 
-12월부터 카파시 작업 방식이 완전히 바뀜. 직접 코딩 vs 에이전트 위임 비율이 8020 → 2080 → 그 이상으로 본격 전환.
+12월부터 카파시 작업 방식이 완전히 바뀜. 직접 코딩 vs 에이전트 위임 비율이 8020 → 2080 → 그 이상으로 큰 전환.
 
 ### 직접 인용
 
@@ -25,7 +25,7 @@
 
 - 일반 개발자 작업 흐름이 12월 이후 완전히 다름
 - 카파시 본인도 이 변화 본질 인지 X 일반인이 다수
-- 한계 영역 본격 탐색 의무 — Twitter에서 다른 사람이 새 영역 발견 시 nervous
+- 한계 영역 광범위 탐색 의무 — Twitter에서 다른 사람이 새 영역 발견 시 nervous
 
 ### 사례
 
@@ -54,7 +54,7 @@
 
 ### 본인 진화 영역
 
-- "addictive"한 이유 = 본인 스킬 ↑ 시점에 unlocks 본격 발생
+- "addictive"한 이유 = 본인 스킬 ↑ 시점에 unlocks 다수 발생
 
 ---
 
@@ -72,7 +72,7 @@ Peter Steinberg 사례 — 다중 모니터 + Codex 다중 인스턴스 + 10 rep
 
 ### 핵심 영역
 
-- 작업 단위 영역 본격 ↑ — 코드 줄 → 함수 → 기능 → 카드 단위
+- 작업 단위 영역 ↑ — 코드 줄 → 함수 → 기능 → 카드 단위
 - Codex 다중 인스턴스 = 20분 단위 실행 (high effort 프롬프트 시점)
 - 본인 = 카드 분배 + 결과 검수 영역
 - "muscle memory" 정착 의무 — 본인 작업 흐름 자체 진화
@@ -106,10 +106,10 @@ Peter Steinberg 사례 — 다중 모니터 + Codex 다중 인스턴스 + 10 rep
 - 본인이 system bottleneck 시점에 max capability 영역 X
 - "skill issue가 empowering" 이유 — 본인이 진화 영역
 
-### 본격 흐름
+### 흐름
 
 - 10년+ 동안 엔지니어가 compute bound X 영역 — resource bound 본문
-- 지금은 capability 본격 ↑ — 본인이 binding constraint 영역
+- 지금은 capability ↑ — 본인이 binding constraint 영역
 
 ---
 
@@ -117,7 +117,7 @@ Peter Steinberg 사례 — 다중 모니터 + Codex 다중 인스턴스 + 10 rep
 
 ### 카파시 본문
 
-Open Claude (Peter Steinberg 작품) = 일반 에이전트보다 영역 본격 ↑.
+Open Claude (Peter Steinberg 작품) = 일반 에이전트보다 영역 광범위 ↑.
 
 ### 직접 인용
 
@@ -131,7 +131,7 @@ Open Claude (Peter Steinberg 작품) = 일반 에이전트보다 영역 본격 �
 
 - 일반 에이전트 = 본인이 inter active 의무 영역
 - Claw = 자체 sandbox + 본인이 안 봐도 작업 진행
-- 메모리 시스템 영역 본격 ↑ (단순 context window compaction 아님)
+- 메모리 시스템 영역 ↑ (단순 context window compaction 아님)
 - 5+ 영역 동시 혁신 — Soul.md / 페르소나 / sycophancy 적정 / 메모리 / WhatsApp 통합
 
 ### Soul.md 페르소나 영역
@@ -144,7 +144,7 @@ Open Claude (Peter Steinberg 작품) = 일반 에이전트보다 영역 본격 �
 
 - Claude = 본인이 좋은 아이디어 시점에만 적정 칭찬
 - 본인이 모호한 아이디어 시점에는 강한 반응 X — "we can implement that" 본문
-- 본인이 본격 좋은 아이디어 시점에 본문 본격 칭찬 → 본인이 칭찬 받기 위해 노력하는 느낌
+- 본인이 정말 좋은 아이디어 시점에 적정 칭찬 → 본인이 칭찬 받기 위해 노력하는 느낌
 
 ---
 
@@ -152,7 +152,7 @@ Open Claude (Peter Steinberg 작품) = 일반 에이전트보다 영역 본격 �
 
 ### 카파시 본문
 
-1월에 Claude Psychosis 시점에 본인 집 관리 에이전트 본격 작성. 이름 = Dobby (해리 포터 elf 비유).
+1월에 Claude Psychosis 시점에 본인 집 관리 에이전트 작성. 이름 = Dobby (해리 포터 elf 비유).
 
 ### 직접 인용
 
@@ -198,7 +198,7 @@ Open Claude (Peter Steinberg 작품) = 일반 에이전트보다 영역 본격 �
 
 ### NanoGPT 사례
 
-카파시 본인 = NanoGPT 2 십년 hyperparameter 튜닝 본격 진행. 본격 적정 영역 정착 추정.
+카파시 본인 = NanoGPT 2 십년 hyperparameter 튜닝 진행. 적정 영역 정착 추정.
 
 단 Auto Research 한 번 진행 시 → 본인이 못 발견한 영역 발견:
 - weight decay
@@ -211,7 +211,7 @@ Open Claude (Peter Steinberg 작품) = 일반 에이전트보다 영역 본격 �
 
 - 본인이 hyperparameter optimization 진행 의무 X
 - 본인이 결과 보는 의무 X — 객관 메트릭 영역
-- 단일 loop도 본격 발견 가능 — 큰 GPU cluster = 영역 본격 ↑
+- 단일 loop도 다수 발견 가능 — 큰 GPU cluster = 영역 광범위 ↑
 - 작은 모델에서 자동 실험 → 큰 모델로 extrapolate
 
 ### Frontier Lab 영역
@@ -245,7 +245,7 @@ LLM = PhD 시스템 프로그래머 + 10세 어린이 동시 영역. 인간은 �
 
 ### 핵심 영역
 
-- Verifiable 영역 (코드 / 단위 테스트) = RL로 본격 진화
+- Verifiable 영역 (코드 / 단위 테스트) = RL로 진화
 - 비-Verifiable 영역 (농담 / nuance / clarifying question 시점) = 진화 영역 X
 - "you're either on Rails and you're part of the super intelligence circuits or you're not on Rails"
 
@@ -254,14 +254,14 @@ LLM = PhD 시스템 프로그래머 + 10세 어린이 동시 영역. 인간은 �
 > "Why do scientists not trust atoms? Because they make everything up."
 
 - ChatGPT가 5년+ 같은 농담만 영역
-- 모델이 본격 진화했는데도 농담은 그대로
-- RL 영역 X = 본격 stuck 영역
+- 모델이 광범위 진화했는데도 농담은 그대로
+- RL 영역 X = stuck 영역
 
 ### 본질 영역
 
 - Coding 영역 ↑ ≠ Joke 영역 ↑
-- 본격 generalization 영역 X 시그널
-- 영역별 능력 차이 본격 — 본인이 영역 인지 의무
+- 충분 generalization 영역 X 시그널
+- 영역별 능력 차이 광범위 — 본인이 영역 인지 의무
 
 ---
 
@@ -269,7 +269,7 @@ LLM = PhD 시스템 프로그래머 + 10세 어린이 동시 영역. 인간은 �
 
 ### 카파시 본문
 
-현재 = 모든 영역 단일 모델 monoculture. 미래 = 동물 왕국처럼 speciation 본격.
+현재 = 모든 영역 단일 모델 monoculture. 미래 = 동물 왕국처럼 speciation 정착.
 
 ### 직접 인용
 
@@ -285,15 +285,15 @@ LLM = PhD 시스템 프로그래머 + 10세 어린이 동시 영역. 인간은 �
 
 ### Compute 압력 영역
 
-- 무한 compute 시점에 = 단일 거대 모델 본격
-- Compute 부족 시점에 = speciation 본격 가능
-- 단 현재 = 본격 monoculture 영역
+- 무한 compute 시점에 = 단일 거대 모델 정착
+- Compute 부족 시점에 = speciation 정착 가능
+- 단 현재 = monoculture 영역
 
 ### 가중치 영역 manipulation
 
-- Context window = 비용 ↓ / 본격 customization 영역
-- 가중치 영역 manipulation = 본격 develop X 영역 — capability loss 회피 어려움
-- Continual learning / 특정 도메인 fine-tuning = 본격 develop 영역
+- Context window = 비용 ↓ / 충분 customization 영역
+- 가중치 영역 manipulation = develop X 영역 — capability loss 회피 어려움
+- Continual learning / 특정 도메인 fine-tuning = develop 영역
 
 ---
 
@@ -301,7 +301,7 @@ LLM = PhD 시스템 프로그래머 + 10세 어린이 동시 영역. 인간은 �
 
 ### 카파시 본문
 
-Untrusted workers + trusted verification pool 본격 가능. SETI@home / Folding@home 비유.
+Untrusted workers + trusted verification pool 정착 가능. SETI@home / Folding@home 비유.
 
 ### 직접 인용
 
@@ -311,15 +311,15 @@ Untrusted workers + trusted verification pool 본격 가능. SETI@home / Folding
 
 ### 핵심 영역
 
-- Auto research = 본격 fit 영역
-- 누군가 commit 제출 → 본인이 verify 본격 가능
+- Auto research = 충분 fit 영역
+- 누군가 commit 제출 → 본인이 verify 충분 가능
 - Frontier Labs = trusted compute / 단 Earth = much bigger untrusted compute 영역
 
 ### 블록체인 비유
 
 - Block 대신 commit 영역
 - Commit이 다른 commit 위에 build 가능
-- Proof of work = 본격 실험 영역
+- Proof of work = 실험 영역
 - 보상 = leaderboard (현재) / 단 미래에 monetary 가능
 
 ### 사용자 영역 contribute
@@ -328,7 +328,7 @@ Untrusted workers + trusted verification pool 본격 가능. SETI@home / Folding
 - 본인이 cancer 연구 영역에 관심 시점에 → compute 구매 → auto research swarm 영역 join
 - 돈 → 기관 기부 X / compute → 직접 contribute
 
-### 본격 미래 시그널
+### 미래 시그널
 
 > "Maybe everyone cares about flops in the future."
 
@@ -356,7 +356,7 @@ Untrusted workers + trusted verification pool 본격 가능. SETI@home / Folding
 
 - Bits 영역 = copy paste 비용 X / 빛의 속도 영역
 - Atoms 영역 = manipulate matter 의무 / 100만 배 느림
-- 디지털 정보 처리 직업 = 본격 변화 영역
+- 디지털 정보 처리 직업 = 변화 영역
 - 물리 직업 = 영역 변화 lag
 
 ### Demand Elasticity 영역
@@ -364,19 +364,19 @@ Untrusted workers + trusted verification pool 본격 가능. SETI@home / Folding
 ATM / 은행 텔러 사례:
 - ATM 도입 시점에 = 텔러 직업 X 두려움 영역
 - 실제 = 은행 지점 운영 비용 ↓ → 더 많은 지점 → 더 많은 텔러 영역
-- "Jevons paradox" — 비용 ↓ 시점에 demand 본격 ↑
+- "Jevons paradox" — 비용 ↓ 시점에 demand 광범위 ↑
 
 ### 소프트웨어 영역
 
 - 소프트웨어 = scarce 영역 (지금까지)
-- 비용 ↓ 시점에 → demand 본격 ↑ 영역
-- 본격 cautiously optimistic — 소프트웨어 엔지니어 영역 본격 demand ↑
+- 비용 ↓ 시점에 → demand 광범위 ↑ 영역
+- cautiously optimistic — 소프트웨어 엔지니어 영역 demand ↑
 
 ### Reshuffling 영역
 
 - 산업 전체 = reconfigure 영역
-- 고객 = 인간 X / 에이전트 본격 (대신 행동)
-- App store 앱 = 본격 X 영역 가능 — API + 에이전트가 glue 영역
+- 고객 = 인간 X / 에이전트 정착 (대신 행동)
+- App store 앱 = 정착 X 영역 가능 — API + 에이전트가 glue 영역
 - "ephemeral software on your behalf" — claw가 모든 디테일 처리
 
 ---
@@ -385,7 +385,7 @@ ATM / 은행 텔러 사례:
 
 ### 카파시 본문
 
-Frontier Lab 내부 = 본격 alignment 영역 의무. 외부 = 본격 자유 영역.
+Frontier Lab 내부 = 강한 alignment 영역 의무. 외부 = 충분 자유 영역.
 
 ### 직접 인용
 
@@ -397,22 +397,22 @@ Frontier Lab 내부 = 본격 alignment 영역 의무. 외부 = 본격 자유 영
 
 ### 핵심 영역
 
-- Financial 인센티브 영역 본격 alignment
-- 조직이 원하는 본문 본격 영역
-- 본격 자율 영역 X — pressure 영역 본격
-- 외부 = humanity 영역 align 본격
+- Financial 인센티브 영역 강한 alignment
+- 조직이 원하는 본문 정착 영역
+- 충분 자율 영역 X — pressure 영역 정착
+- 외부 = humanity 영역 align 정착
 
-### 본격 단점 영역
+### 단점 영역
 
-- 외부 = frontier 영역 인지 X 시점에 judgement 본격 drift
-- 시스템 영역 본격 opaque
-- 본격 발전 영역 인지 X — "judgment will inevitably start to drift"
+- 외부 = frontier 영역 인지 X 시점에 judgement 광범위 drift
+- 시스템 영역 광범위 opaque
+- 발전 영역 인지 X — "judgment will inevitably start to drift"
 
-### 본격 추천 영역
+### 추천 영역
 
-- Frontier Lab 시점에 = 본격 좋은 작업 영역 → 외부 영역 본격 진행
-- "going back and forth" 본격 영역
-- 본격 영역 영향 = 외부 영역 본격 가능 영역
+- Frontier Lab 시점에 = 충분 좋은 작업 영역 → 외부 영역 진행
+- "going back and forth" 정착 영역
+- 광범위 영역 영향 = 외부 영역 정착 가능 영역
 
 ---
 
@@ -420,7 +420,7 @@ Frontier Lab 내부 = 본격 alignment 영역 의무. 외부 = 본격 자유 영
 
 ### 카파시 본문
 
-Closed 모델 = frontier / Open source = 6-8개월 lag. Linux 영역 비유 본격.
+Closed 모델 = frontier / Open source = 6-8개월 lag. Linux 영역 비유 정착.
 
 ### 직접 인용
 
@@ -431,36 +431,36 @@ Closed 모델 = frontier / Open source = 6-8개월 lag. Linux 영역 비유 본�
 ### 핵심 영역
 
 - 운영체제 영역 비유: Windows / Mac OS (closed) + Linux (open / 60% 점유)
-- 산업 영역 본격 demand — common open platform 영역
-- Open source 모델 = 6-8개월 lag / 단 본격 충분 영역
-- Consumer use case 본격 영역 — 본격 충분 가능
+- 산업 영역 광범위 demand — common open platform 영역
+- Open source 모델 = 6-8개월 lag / 단 충분 영역
+- Consumer use case 정착 영역 — 충분 가능
 
-### 본격 영역 미래 영역
+### 미래 영역
 
-- 단순 use case = open source가 본격 영역 가능
-- Frontier intelligence = Nobel Prize 영역 / Linux를 C → Rust 변환 영역 등 본격 영역
-- Closed = bigger projects 본격 / Open = consumer 영역
+- 단순 use case = open source가 정착 영역 가능
+- Frontier intelligence = Nobel Prize 영역 / Linux를 C → Rust 변환 영역 등 정착 영역
+- Closed = bigger projects 정착 / Open = consumer 영역
 
-### Centralization 영역 본격 위험
+### Centralization 영역 위험
 
 - 카파시: "Centralization has a very poor track record"
 - Eastern European 비유 영역
-- Open source 본격 정착 = 본격 power balance 영역
+- Open source 정착 = power balance 영역
 
 ### Ensembles 영역
 
 > "Ensembles always outperform any individual model."
 
-- 단순 frontier lab 2-3개 영역 X — 본격 ensembles 영역 의무
-- 다양 영역 본격 본인 영역 본격 정착 본격
+- 단순 frontier lab 2-3개 영역 X — ensembles 영역 의무
+- 다양 영역 본인 영역 충분 정착
 
 ---
 
-## §14 Markdown for Agents — 교육 패러다임 본격 전환
+## §14 Markdown for Agents — 교육 패러다임 전환
 
 ### 카파시 본문
 
-micro GPT (200줄 Python) 작성 후 영역 본격 인지 — "I'm explaining it to agents".
+micro GPT (200줄 Python) 작성 후 영역 인지 — "I'm explaining it to agents".
 
 ### 직접 인용
 
@@ -473,7 +473,7 @@ micro GPT (200줄 Python) 작성 후 영역 본격 인지 — "I'm explaining it
 ### 핵심 영역
 
 - 사용자에게 직접 설명 영역 X
-- 에이전트에게 설명 영역 본격 정착
+- 에이전트에게 설명 영역 정착
 - 에이전트가 "router" 영역 — 사용자에게 본인 영역 customize 가능
 - 사용자는 무한 patience + 본인 capability 영역 영역 가능
 
@@ -481,29 +481,29 @@ micro GPT (200줄 Python) 작성 후 영역 본격 인지 — "I'm explaining it
 
 - Skill = 에이전트에게 가르치는 본문 영역
 - 예: micro GPT skill = 코드베이스 학습 흐름 hint 영역
-- 사용자가 학습 의무 시점에 → 에이전트가 skill 본격 활용 → 사용자에게 customize 설명 영역
+- 사용자가 학습 의무 시점에 → 에이전트가 skill 충분 활용 → 사용자에게 customize 설명 영역
 
-### micro GPT 본격 영역
+### micro GPT 영역
 
-- 200줄 Python — 본격 단순화 영역
+- 200줄 Python — 단순화 정착 영역
 - Data set + neural network architecture (50줄) + forward pass + backward pass (autograd 100줄) + optimizer (10줄)
-- 본격 의도 = 본격 simplest 영역 정착
-- 카파시 영역 contribute = 본격 simplest 본문 본격 정착
-- 그 외 영역 = 에이전트가 본격 영역 가능
+- 정확 의도 = simplest 영역 정착
+- 카파시 영역 contribute = simplest 본문 정착
+- 그 외 영역 = 에이전트가 충분 가능
 
-### 본격 미래 영역
+### 미래 영역
 
-- 라이브러리 documentation 영역 변화 본격
-- 사용자용 HTML X / 에이전트용 markdown 본격
-- Education 영역 본격 reshuffle 영역
-- 본인 contribution = 에이전트가 본격 X 영역만 본격 정착 의무
+- 라이브러리 documentation 영역 변화 정착
+- 사용자용 HTML X / 에이전트용 markdown 정착
+- Education 영역 reshuffle 영역
+- 본인 contribution = 에이전트가 X 영역만 정착 의무
 - "The things that agents can do they can probably do better than you or like very soon"
 
 ---
 
-## §15 Karpathy 본격 9 본능 정리 (영상 기반)
+## §15 Karpathy 9 본능 정리 (영상 기반)
 
-본 인터뷰에서 본격 추출한 카파시 본능 9건:
+본 인터뷰에서 추출한 카파시 본능 9건:
 
 | # | 본능 | 본질 | 인용 위치 |
 |---|---|---|---|
@@ -515,7 +515,7 @@ micro GPT (200줄 Python) 작성 후 영역 본격 인지 — "I'm explaining it
 | 6 | Auto Research | 인간 결정 최소화 / 객관 메트릭 자동화 | §7 |
 | 7 | Jaggedness | Verifiable vs 비-Verifiable 영역 분리 | §8 |
 | 8 | AGENTS.md / Soul.md | 에이전트 인지 자료 + 페르소나 본문 | §5 |
-| 9 | Markdown for Agents | 교육 패러다임 본격 전환 (HTML → Markdown) | §14 |
+| 9 | Markdown for Agents | 교육 패러다임 전환 (HTML → Markdown) | §14 |
 
 추가 영역 (본능 X / 사례 영역):
 - Dobby (§6) — 홈 자동화 자연어 인터페이스
@@ -527,26 +527,26 @@ micro GPT (200줄 Python) 작성 후 영역 본격 인지 — "I'm explaining it
 
 ---
 
-## §16 카파시 영상 본문 vs KARPATHY_MAPPING.md §1 본격 비교
+## §16 카파시 영상 본문 vs KARPATHY_MAPPING.md §1 비교
 
-### 쿠카 박은 KARPATHY_MAPPING.md §1 8 본능
+### 쿠카 작성 KARPATHY_MAPPING.md §1 8 본능
 
-| # | 쿠카 박은 본능 | 영상 본문 일치? | 비고 |
+| # | 쿠카 작성 본능 | 영상 본문 일치? | 비고 |
 |---|---|---|---|
 | a | Skill Issue | ✓ | §2 직접 인용 가능 |
 | b | Auto Research | ✓ | §7 직접 인용 가능 |
-| c | Premortem | X | 영상 본문 X / 쿠카 영역 본능 |
+| c | Premortem | X | 영상 본문 X / 쿠카 영역 패턴 |
 | d | Reversibility (Type 1/2/3) | X | 영상 본문 X / 쿠카 영역 (Type 영역) |
 | e | 5 Guards (G1-G5) | X | 영상 본문 X / 쿠카 영역 (Aether 영역) |
-| f | 박지 않은 결정 = 시그널 | X | 영상 본문 X / 쿠카 영역 (양면 정책 영역) |
-| g | 본질 충돌 분리 | X | 영상 본문 X / 쿠카 영역 본능 |
-| h | 본격 측정 vs 추정 | X | 영상 본문 X / 쿠카 영역 본능 |
+| f | 미적용 결정 = 시그널 | X | 영상 본문 X / 쿠카 영역 (양면 정책 영역) |
+| g | 본질 충돌 분리 | X | 영상 본문 X / 쿠카 영역 패턴 |
+| h | 측정 vs 추정 | X | 영상 본문 X / 쿠카 영역 패턴 |
 
-일치율: 25% (2/8) / 6건 쿠카 영역 본능 (영상 본문 X)
+일치율: 25% (2/8) / 6건 쿠카 영역 패턴 (영상 본문 X)
 
-### 영상 본문 X / KARPATHY_MAPPING.md §1 본격 누락 영역
+### 영상 본문 X / KARPATHY_MAPPING.md §1 누락 영역
 
-| # | 영상 본문 영역 | KARPATHY §1 본격 X | V-1b 추가 의무 |
+| # | 영상 본문 영역 | KARPATHY §1 X | V-1b 추가 의무 |
 |---|---|---|---|
 | 1 | AI Psychosis | X | 추가 의무 |
 | 2 | Macro Actions | X | 추가 의무 |
@@ -556,16 +556,15 @@ micro GPT (200줄 Python) 작성 후 영역 본격 인지 — "I'm explaining it
 | 6 | Jaggedness | X | 추가 의무 |
 | 7 | Markdown for Agents | X | 추가 의무 |
 
-본격 누락 영역: 7건
+누락 영역: 7건
 
-### V-1b 본격 트리거 영역
+### V-1b 트리거 영역
 
-- KARPATHY_MAPPING.md §1 본격 재작성 의무
-- 쿠카 영역 본능 (Premortem / Reversibility / 5 Guards / 박지 않은 결정 / 본질 충돌 분리 / 측정 vs 추정) = 별도 자료 영역 (META_REVIEW.md / WORK_PATTERNS.md / PRINCIPLES.md 영역)
-- 카파시 영상 본문 9 본능 본격 정착 의무
-- 매칭 점수 진화 표 본격 재계산 의무 (실제 9 본능 기준)
-- 8 × 14 카드 매핑 표 본격 재작성 의무 (실제 9 본능 기준)
-- 면접 답변 매핑 5 영역 본격 재검토 의무 (실제 카파시 본능 인용)
+- KARPATHY_MAPPING.md §1 재작성 의무
+- 쿠카 영역 패턴 (Premortem / Reversibility / 5 Guards / 미적용 결정 / 본질 충돌 분리 / 측정 vs 추정) = 다른 자료 본문 인용 (META_REVIEW.md / WORK_PATTERNS.md / PRINCIPLES.md 영역) / 자료 분산 이동 X
+- 카파시 영상 본문 9 본능 정착 의무
+- §1 재작성 시점에 영상 9 ↔ Aether 매핑 통합 (3 영역: 영상 인용 + Aether 적용 + 결과)
+- §2 / §3 / §4 / §5 / §6 = 영구 보류 (본인 주관 / 객관성 X / 면접 가치 X / I-1 영역)
 
 ---
 
@@ -574,32 +573,32 @@ micro GPT (200줄 Python) 작성 후 영역 본격 인지 — "I'm explaining it
 ### 사용자 옆 Claude 정독 의무 영역
 
 - 본 자료 = 카파시 영상 본문 디테일 정리
-- 사용자 옆 Claude (= 본 대화 Claude) 정독 후 V-0 / V-1 카드 본문 본격 활용
-- 본격 자료 = 본 대화 컨텍스트 직접 통합
+- 사용자 옆 Claude (= 본 대화 Claude) 정독 후 V-0 / V-1 카드 본문 활용
+- 본 자료 = 본 대화 컨텍스트 직접 통합
 
 ### V-0 카드 영역
 
 - §2.11 = 본 자료 직접 통합 가능
-- DIGEST.md §2.11 = 본 자료 핵심 영역 + KARPATHY §1 본격 비교 표
+- DIGEST.md §2.11 = 본 자료 핵심 영역 + KARPATHY §1 비교 표
 
 ### V-1 카드 영역
 
-- KARPATHY_MAPPING.md §1 본격 재작성 의무 영역
-- 본 자료 = 본격 reference 영역
-- 본격 카파시 본문 직접 인용 가능
+- KARPATHY_MAPPING.md §1 재작성 의무 영역
+- 본 자료 = reference 영역
+- 카파시 본문 직접 인용 가능
 
 ### V-1b 카드 영역
 
-- KARPATHY_MAPPING.md §1 본격 재작성
-- 본 자료 = 본격 source of truth 영역
-- 본격 9 본능 정착 + 7 누락 영역 추가
+- KARPATHY_MAPPING.md §1 재작성 (영상 9 ↔ Aether 매핑)
+- 본 자료 = source of truth 영역
+- 9 본능 정착 + 7 누락 영역 추가
 
 ### I-1 카드 영역
 
-- 면접 답변 매핑 5 영역 본격 재검토 의무
-- 본 자료 = 본격 인용 reference 영역
-- 본격 카파시 본문 직접 인용 가능
+- 면접 답변 매핑 5 영역 재검토 의무
+- 본 자료 = 인용 reference 영역
+- 카파시 본문 직접 인용 가능
 
 ---
 
-> **본 자료 작성 의도**: 사용자 (쿠카) 검수 본능 + 단어 위생 본능 본격 정착 시그널. 본 자료 = 카파시 영상 본문 디테일 정착 / 영상 시간대 영역 X / 본격 의미 + 사례 + 직접 인용 본격 영역. V-0 / V-1 / V-1b / I-1 카드 본격 진입 자료 영역.
+> **본 자료 작성 의도**: 사용자 (쿠카) 검수 본능 + 단어 위생 본능 정착 시그널. 본 자료 = 카파시 영상 본문 디테일 정착 / 영상 시간대 영역 X / 의미 + 사례 + 직접 인용 영역. V-0 / V-1 / V-1b / I-1 카드 진입 자료 영역.
