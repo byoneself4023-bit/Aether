@@ -15,6 +15,12 @@
 2. **Phase 1-2 사전 분석** (pre-existing 6건) — 01_architecture ~ 06_api_reliability (Aether 시작 시점 As-Is 진단)
 3. **카드 본문** (phase3/ 폴더 11건) — Top 10 카드 마스터 로드맵 + 10 카드 디테일
 
+**인용 흐름 영역** (TG-1 신규 / 본 자료 ↔ root TEST_GUIDE):
+- VERIFICATION.md §0 (진단 5 절차) → docs/TEST_GUIDE.md §3 인용
+- VERIFICATION.md §11 (검증용 user / id=4) → docs/TEST_GUIDE.md §1.4 인용
+- META_REVIEW.md §9 (면접 시연 5분) → docs/TEST_GUIDE.md §4 인용
+- AUDIT.md (D-4 / 14 카드 종합) → docs/TEST_GUIDE.md §4.2 차별화 영역 인용
+
 ---
 
 ## §2 정착 자료 14건 디테일
