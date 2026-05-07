@@ -45,6 +45,7 @@ Aether/
 ├── INTERVIEW.md                       (pre-existing / 면접 사실집)
 └── docs/
     ├── README.md                      (본 자료 / docs 인덱스)
+    ├── TEST_GUIDE.md                  (TG-1 / 5 기능 시연 가이드 + 면접 5분)
     ├── adr/                           (ADR 23건 + README)
     │   ├── README.md                  (ADR 카테고리 인덱스)
     │   ├── 0001-...                   (Top 10 카드 ADR)
@@ -121,12 +122,11 @@ D-4 패턴 일관성 — 자료 본문 변경 시 영향 § 같은 PR에 동시 
 
 ## §7 다음 카드 진입 자료
 
-> **CL-2 / CL-3 영구 보류** (CL-D / ADR 0025) — 시나리오 A 본질 X / 시나리오 B 진입 시점 (도메인 검증 + 사용자 5+ + PMF 10불) 트리거. 다음 진입 = TG-1 직접.
+> **TG-1 정착** (docs/TEST_GUIDE.md / 5 기능 시연 + 면접 5분). **CL-2 / CL-3 영구 보류** (CL-D / ADR 0025). 다음 진입 = I-1 (면접 답변 시뮬).
 
 | 카드 | 진입 자료 | 본질 |
 |------|-----------|------|
-| **TG-1** | docs/agent-capability-audit/AUDIT.md | 시연 가이드 (D-4 audit 결과) |
-| **I-1** | KARPATHY_MAPPING.md §6 + INTERVIEW.md + Top 10 자료 | 면접 답변 시뮬 (꼬리 질문 영역) |
+| **I-1** | docs/TEST_GUIDE.md + KARPATHY_MAPPING.md §6 + INTERVIEW.md + Top 10 자료 | 면접 답변 시뮬 (꼬리 질문 영역) |
 | Aether 종료 | 모든 자료 / 양면 정책 15 ADR | 시나리오 A 종료 — Houseman 진입 시점에 CL-2 / CL-3 검토 |
 | **CL-2 / CL-3** | (영구 보류 / ADR 0025) | 시나리오 B 진입 시점 트리거 — 코드 / 의존성 cleanup |
 
