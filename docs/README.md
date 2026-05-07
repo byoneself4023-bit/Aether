@@ -121,12 +121,14 @@ D-4 패턴 일관성 — 자료 본문 변경 시 영향 § 같은 PR에 동시 
 
 ## §7 다음 카드 진입 자료
 
+> **CL-2 / CL-3 영구 보류** (CL-D / ADR 0025) — 시나리오 A 본질 X / 시나리오 B 진입 시점 (도메인 검증 + 사용자 5+ + PMF 10불) 트리거. 다음 진입 = TG-1 직접.
+
 | 카드 | 진입 자료 | 본질 |
 |------|-----------|------|
-| **CL-2** | docs/README.md (본 자료) + AGENTS §7 | 코드 정리 (CL-1과 영역 분리 / 회귀 검증 의무) |
-| **CL-3** | requirements.txt / package.json | 의존성 정리 |
 | **TG-1** | docs/agent-capability-audit/AUDIT.md | 시연 가이드 (D-4 audit 결과) |
 | **I-1** | KARPATHY_MAPPING.md §6 + INTERVIEW.md + Top 10 자료 | 면접 답변 시뮬 (꼬리 질문 영역) |
+| Aether 종료 | 모든 자료 / 양면 정책 15 ADR | 시나리오 A 종료 — Houseman 진입 시점에 CL-2 / CL-3 검토 |
+| **CL-2 / CL-3** | (영구 보류 / ADR 0025) | 시나리오 B 진입 시점 트리거 — 코드 / 의존성 cleanup |
 
 ---
 
