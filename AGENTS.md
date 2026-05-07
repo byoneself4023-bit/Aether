@@ -151,6 +151,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 | D-4 Audit baseline | 카드 14건 머지 / WORK_PATTERNS 17/18 해소 / 14,414 LOC / 635 테스트 / 19→**20** ADR / 누적 자료 3,354 LOC | AUDIT.md + ADR 0020 |
 | PRINCIPLES 패턴 | 7 → **10** (P-1 / §8 신규 endpoint 분리 / §9 Auto Research / §10 G1 본질 트리거 정정) | PRINCIPLES.md + ADR 0021 |
 | KARPATHY 매칭 | 8 본능 평균 76 → **87점** (Skill 95 / Auto Research 90 / Reversibility 90 등) — 면접 답변 5 영역 매핑 | KARPATHY_MAPPING.md + ADR 0021 |
+| V-0 / V-1 baseline | V-0 DIGEST.md 812 LOC + KARPATHY_LECTURE.md 605 LOC 통합 (누적 자료 12 파일). V-1 의문 7건 검증 — 부족 5 (V-1b 트리거) + 부분 충분 2. V-1b 의무 5건 정착 (KARPATHY §1 재작성 / LECTURE 단어 위생 / 6건 쿠카 영역 이동 / 매칭 점수 재계산 / 면접 답변 재검토). 양면 정책 12 ADR (0011-**0022**) | DIGEST.md + VERIFICATION_v2.md + ADR 0022 |
 | CACHE_MAXSIZE | 1000 (기본) — 인메모리 LRU 캐시 항목 수 | docker-compose.yml + portfolio config.py + .env.example |
 | CORS 명시 정책 | allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID] — D-2 통일 | ADR 0012 |
 | API 키 검증 (llm) | lifespan startup + config Pydantic validator 이중 안전장치 — D-2 (`#23`) | ADR 0012 |
