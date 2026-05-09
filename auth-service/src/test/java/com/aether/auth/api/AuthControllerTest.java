@@ -197,6 +197,141 @@ class AuthControllerTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true));
         }
+
+        // DBG-2 / ADR 0027: 이메일 형식 검증 강화 (TG-2c/TG-2d Edge-1 회귀 검증)
+
+        @Test
+        @DisplayName("실패 - TLD 없음 (foo@bar) 400 / DBG-2")
+        void signUp_NoTLD_Fail() throws Exception {
+            SignUpRequest request = SignUpRequest.builder()
+                    .email("foo@bar")
+                    .password("Password1!")
+                    .name("User")
+                    .build();
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.code").value("C002"));
+        }
+
+        @Test
+        @DisplayName("실패 - @ 없음 (notanemail) 400 / DBG-2")
+        void signUp_NoAtSign_Fail() throws Exception {
+            SignUpRequest request = SignUpRequest.builder()
+                    .email("notanemail")
+                    .password("Password1!")
+                    .name("User")
+                    .build();
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.code").value("C002"));
+        }
+
+        @Test
+        @DisplayName("실패 - 도메인 없음 (foo@) 400 / DBG-2")
+        void signUp_NoDomain_Fail() throws Exception {
+            SignUpRequest request = SignUpRequest.builder()
+                    .email("foo@")
+                    .password("Password1!")
+                    .name("User")
+                    .build();
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.code").value("C002"));
+        }
+
+        @Test
+        @DisplayName("실패 - TLD 1자 (foo@bar.c) 400 / DBG-2 (TLD ≥ 2자)")
+        void signUp_TldTooShort_Fail() throws Exception {
+            SignUpRequest request = SignUpRequest.builder()
+                    .email("foo@bar.c")
+                    .password("Password1!")
+                    .name("User")
+                    .build();
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.code").value("C002"));
+        }
+
+        @Test
+        @DisplayName("실패 - foo<ts>@bar 회귀 (TG-2d Edge-1) 400 / DBG-2")
+        void signUp_FooTsAtBar_Fail() throws Exception {
+            // TG-2d Edge-1 영역 — id=19 정상 signup 영역 / DBG-2 정착 후 C002 의무
+            SignUpRequest request = SignUpRequest.builder()
+                    .email("foo1778310495@bar")
+                    .password("Password1!")
+                    .name("User")
+                    .build();
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.code").value("C002"));
+        }
+
+        @Test
+        @DisplayName("성공 - 특수문자 (user+tag@example.com) 201 / DBG-2 회귀")
+        void signUp_PlusTagEmail_Success() throws Exception {
+            SignUpRequest request = SignUpRequest.builder()
+                    .email("user+tag@example.com")
+                    .password("Password1!")
+                    .name("User Plus")
+                    .build();
+
+            UserResponse response = UserResponse.builder()
+                    .id(10L)
+                    .email("user+tag@example.com")
+                    .name("User Plus")
+                    .role(Role.USER)
+                    .enabled(true)
+                    .build();
+
+            given(authService.signUp(any(SignUpRequest.class))).willReturn(response);
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @DisplayName("성공 - 다단 TLD (user@example.co.kr) 201 / DBG-2 회귀")
+        void signUp_MultiLevelTld_Success() throws Exception {
+            SignUpRequest request = SignUpRequest.builder()
+                    .email("user.name@example.co.kr")
+                    .password("Password1!")
+                    .name("User KR")
+                    .build();
+
+            UserResponse response = UserResponse.builder()
+                    .id(11L)
+                    .email("user.name@example.co.kr")
+                    .name("User KR")
+                    .role(Role.USER)
+                    .enabled(true)
+                    .build();
+
+            given(authService.signUp(any(SignUpRequest.class))).willReturn(response);
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
     }
 
     @Nested
