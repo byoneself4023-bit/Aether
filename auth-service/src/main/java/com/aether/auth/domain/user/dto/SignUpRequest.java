@@ -15,8 +15,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SignUpRequest {
 
+    // DBG-2 / ADR 0027: Spring @Email은 `@`만 검증 (TLD X) → @Pattern 이중 의무 (RFC 5322 영역 / TLD ≥ 2자)
     @NotBlank(message = "이메일은 필수입니다")
     @Email(message = "올바른 이메일 형식이 아닙니다")
+    @Pattern(
+            regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+            message = "올바른 이메일 형식이 아닙니다 (도메인 + TLD 의무)"
+    )
     private String email;
 
     @NotBlank(message = "비밀번호는 필수입니다")
