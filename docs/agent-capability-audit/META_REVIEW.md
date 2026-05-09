@@ -705,3 +705,35 @@ Aether 18 문제 (WORK_PATTERNS) + 7 시니어 판단 패턴 (PRINCIPLES) + 10 �
 > *"Aether는 시나리오 A(기술 데모) 본질 박힘. 다시 짜도 본질 채택은 동일. 차이는 운영급 결정 첫날 박기 + 모놀리식 페이지 회피 + 본질 X 기능 명시 보류. 학습 자산은 Houseman 진화 시점에 통합."*
 
 — PRINCIPLES.md §원칙 5 적용 종결: *"AI 추천 vs 본인 결정 분리 추적"*. 본 회고는 본인 결정 회고.
+
+---
+
+## §12. Aether 종료 회고 (AETHER-END / 2026-05-10)
+
+### §12.1 시나리오 A 본질 정착 완료
+
+- 카드 누적 = **32 마감** (Phase 0-1 + Top 10 + DIFF-1 + TG-1 + TG-2 / 2b / 2c / 2d + I-1 + I-1-REVIEW + AUDIT-1 + DBG-1 + DBG-2 + DEV-FE-1 + TG-MANUAL + AETHER-END)
+- 양면 정책 = **19 ADR** (0011-0029 / 정착 11 / 보류 4 / 메타 4 / 정리 1)
+- 카파시 8 본능 평균 = **76 → 87** (+11점)
+- 면접 시연 5분 = **4/5 시연 가능** (signup+login + optimize + backtest + chat / MCP 사용자 수동)
+- AUDIT_REPORT.md = 22 발견 (Critical 3 정착 / Major 11 + Minor 8 보류)
+
+### §12.2 학습 10건 정리 (Houseman 진입 적용)
+
+1. **양면 정책** — 옵션 A vs 옵션 B 명시 ADR / 보류 결정 = 시그널
+2. **자가 검증 패턴** — AI agent 결과 100% 신뢰 X / I-1-REVIEW 14건 + AUDIT-1 거짓 3건 + DEV-FE-1 plan 추측 정정 사례
+3. **한 카드 1책임** — CLAUDE.md §6 / 분리 의무 (DBG-1 / DBG-2 분리 사례)
+4. **F-패턴 머지** — 단일 squash + PR + main 동기화 / pre-existing 분리 보존
+5. **본질 충돌 분리** — PRINCIPLES 패턴 7 / 시나리오 분리 (Aether 시나리오 A → Houseman 시나리오 B+ / 별도 repo)
+6. **미적용 결정 = 시그널** — PRINCIPLES 패턴 6 / Major 11 + Minor 8 보류 결정 = 시그널 (ADR 0029)
+7. **G1 본질 트리거** — 즉시 정정 / 자가 검증 / Skill Issue 95점 (KARPATHY_MAPPING)
+8. **Macro Actions** — 카드 위임 / 카파시 영상 5번 직접 적용 (88점)
+9. **AGENTS.md** — 지배 숫자 정착 / 자료 일관성 / D-4 패턴 (ADR 0020)
+10. **시나리오 분리** — Aether 시나리오 A 일관성 / Houseman 시나리오 B+ 별도 repo (ADR 0029)
+
+### §12.3 다음 진입 (Houseman)
+
+- 별도 repo (Aether 본 repo 보존)
+- Phase 7-12 로드맵 (Subagents + Soul.md + 사용자 직접 정착 의무)
+- HOUSEMAN_APPLICATION.md 인용 (`docs/HOUSEMAN_APPLICATION.md`)
+- ADR 0029 인용 (Aether 종료 결정 / 양면 정책 19 ADR)

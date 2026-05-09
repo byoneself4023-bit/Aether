@@ -37,6 +37,13 @@
 
 → **답 안 되면 시나리오 A로 끝내고 별도 프로젝트로 분리.**
 
+### Aether 종료 시점 (2026-05-10 / AETHER-END / ADR 0029)
+
+- **시나리오 A 본질 정착 완료** — Phase 1 종료 (DBG-1 + DBG-2 + DEV-FE-1) + TG-MANUAL 정착 / 카드 누적 32 마감 / 양면 정책 19 ADR
+- **시나리오 B 트리거 3 질문 답 X** → 시나리오 A 종료 + 별도 프로젝트 분리 (Houseman 진입)
+- **Houseman 진입** = 별도 repo + Phase 7-12 + Subagents + Soul.md (시나리오 분리 / PRINCIPLES 패턴 7)
+- 인용: `docs/HOUSEMAN_APPLICATION.md` + `docs/adr/0029-aether-end-decision.md`
+
 ---
 
 ## 🎯 면접 답변 (시니어 시그널)
