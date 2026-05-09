@@ -46,8 +46,9 @@ Aether/
 └── docs/
     ├── README.md                      (본 자료 / docs 인덱스)
     ├── TEST_GUIDE.md                  (TG-1 / 5 기능 시연 가이드 + 면접 5분)
-    ├── TEST_REPORT.md                 (TG-2 / Playwright MCP 자동 시연 결과 — 사전 정착 / TG-2b 시점 시연 결과 갱신)
+    ├── TEST_REPORT.md                 (TG-2 / TG-2b / TG-2c / TG-2d / puppeteer MCP 자동 시연 결과 — 사용자 검수 영역 정착 / 8 통과 + 1 실패 + 9 보류)
     ├── DIFFERENTIATION.md             (DIFF-1 / 직무별 차별화 영역 4 / 면접 답변 + 이력서 활용)
+    ├── INTERVIEW_SIMULATION.md        (I-1 / 면접 답변 시뮬 / 4 직무 × 5-7 질문 + 꼬리 + §7 까다로운 5-7 + §8 답변 흐름 / 자료 인용 9건 통합)
     ├── adr/                           (ADR 23건 + README)
     │   ├── README.md                  (ADR 카테고리 인덱스)
     │   ├── 0001-...                   (Top 10 카드 ADR)
@@ -115,8 +116,12 @@ D-4 패턴 일관성 — 자료 본문 변경 시 영향 § 같은 PR에 동시 
 
 | 자료 | 영역 | 본질 |
 |------|------|------|
-| INTERVIEW.md (root) | 면접 사실집 | README 정정 3건 + 면접 답변 4종 매핑 표 + 운영 답변 14 장애 |
-| KARPATHY_MAPPING.md §6 | I-1 카드 영역 | 면접 답변 5 영역 + 꼬리 질문 시뮬 (V-1b 시점 보류 / I-1 시점 재작성) |
+| **INTERVIEW_SIMULATION.md** (docs/) | **I-1 정착 / 면접 답변 시뮬 직접 활용 자료** | **4 직무 × 5-7 질문 + 꼬리 3-5건 + §7 까다로운 5-7 + §8 답변 흐름 / 자료 인용 9건 통합** |
+| DIFFERENTIATION.md (docs/) | DIFF-1 정착 / 직무별 차별화 영역 4 | AI Engineer 5 / Backend 5 / Full Stack 3 / 시스템 설계 5 + 면접 꼬리 19건 |
+| TEST_GUIDE.md (docs/) | TG-1 정착 / 5 기능 시연 가이드 | 5 기능 × 3 시나리오 = 15 시나리오 + 면접 시연 5분 |
+| TEST_REPORT.md (docs/) | TG-2 / TG-2b / TG-2c / TG-2d 정착 / 자동 시연 결과 | puppeteer 4 정상 + curl 5 Edge/에러 / 8 통과 + 1 실패 + 9 보류 / 4/5 시연 가능 |
+| INTERVIEW.md (root) | 면접 사실집 (pre-existing) | README 정정 3건 + 면접 답변 4종 매핑 표 + 운영 답변 14 장애 |
+| KARPATHY_MAPPING.md §1 + §부록 | P-1 / V-1b 정착 / 영상 ↔ Aether 매핑 | 9 항목 매핑 (5 직접 적용 / 4 미적용) + 부록 6건 쿠카 영역 |
 | Top 10 카드 자료 | docs/agent-capability-audit/phase3/ | 11 카드 본문 (00 master_roadmap + 10 카드) |
 | 시니어 본질 | PRINCIPLES.md (10 패턴) + META_REVIEW.md | 본질 결정 + 회고 |
 
@@ -124,13 +129,14 @@ D-4 패턴 일관성 — 자료 본문 변경 시 영향 § 같은 PR에 동시 
 
 ## §7 다음 카드 진입 자료
 
-> **TG-2 사전 정착** (.mcp.json + docs/TEST_REPORT.md 골격 / Playwright MCP 통합). **DIFF-1 정착** (docs/DIFFERENTIATION.md / 직무별 차별화 4 영역 + 면접 답변 + 자료 인용 흐름). **TG-1 정착** (docs/TEST_GUIDE.md / 5 기능 시연 + 면접 5분). **CL-2 / CL-3 영구 보류** (CL-D / ADR 0025). 다음 진입 = TG-2b (자동 시연 영역) 또는 I-1 (면접 답변 시뮬).
+> **TG-2 / TG-2b / TG-2c / TG-2d 정착** (자동 시연 결과 / 8 통과 + 1 실패 + 9 보류 / 사용자 검수 영역 정착 / 4/5 시연 가능). **DIFF-1 정착** (직무별 차별화 4 영역). **TG-1 정착** (5 기능 시연 가이드). **I-1 정착** (면접 답변 시뮬 / 4 직무 × 5-7 질문 + 꼬리 + §7 까다로운 + §8 흐름). **CL-2 / CL-3 영구 보류** (CL-D / ADR 0025). 다음 진입 = Aether 종료 카드 (시나리오 A 종료) → Houseman 진입.
 
 | 카드 | 진입 자료 | 본질 |
 |------|-----------|------|
-| **TG-2b** | docs/TEST_REPORT.md + docs/TEST_GUIDE.md §2 + .mcp.json (Playwright MCP) | Playwright MCP 자동 시연 12 시나리오 + 본 보고서 §1-§3 실측 결과 갱신 (Claude Code 재시작 + docker 6 서비스 사전 의무) |
-| **I-1** | docs/DIFFERENTIATION.md + docs/TEST_GUIDE.md + docs/TEST_REPORT.md + KARPATHY_MAPPING.md §6 + INTERVIEW.md + Top 10 자료 | 면접 답변 시뮬 (꼬리 질문 영역) |
-| Aether 종료 | 모든 자료 / 양면 정책 15 ADR | 시나리오 A 종료 — Houseman 진입 시점에 CL-2 / CL-3 검토 |
+| **Aether 종료** | I-1 + AUDIT.md + META_REVIEW §9 + SCENARIO §1.1 + 양면 정책 15 ADR | 시나리오 A 종료 결정 / ADR 0026 가능 / 카드 누적 영역 25건 마감 |
+| **Houseman 진입** | HOUSEMAN_APPLICATION.md + Phase 7-12 학습 적용 | Subagents 정착 / Soul.md / 별도 repo |
+| **DBG-1** (보류) | TG-2d §3.2 #1 + portfolio-service logs (transient yfinance rate limit 영역) | yfinance fallback data provider (재발 영역 영역 영역 / fixture / mock) |
+| **DBG-2** (보류) | TG-2d §3.2 #2 + auth-service SignUpRequest @Email | 이메일 형식 영역 (RFC 5322 정규식 추가) |
 | **CL-2 / CL-3** | (영구 보류 / ADR 0025) | 시나리오 B 진입 시점 트리거 — 코드 / 의존성 cleanup |
 
 ---
