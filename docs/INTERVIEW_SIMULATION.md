@@ -59,11 +59,11 @@
 
 | 영역 | 숫자 | 인용 |
 |---|---|---|
-| 서비스 영역 | 4 MSA + 2 인프라 (postgres + redis + qdrant) | docker-compose.yml:6-160 / ADR 0001 |
+| 서비스 영역 | 4 MSA + 3 인프라 (postgres + redis + qdrant) | docker-compose.yml:6-160 / ADR 0001 |
 | 코드 LOC | 14,414 | AUDIT.md (D-4 baseline) |
 | 테스트 | 635 (백엔드 511 + frontend 5 + 추가 119) | INTERVIEW.md §4 / Pytest |
 | ADR | 25건 (정착 7 + 보류 4 + 메타 4 + 정리 1) | docs/adr/0001-0025 |
-| 카드 | 24건 (TG-2d 머지 후) | docs/agent-capability-audit/phase3/ |
+| 카드 | 24건 (phase3 11 + TG/DBG/I/M/V 13 / TG-2d 머지 후) | docs/agent-capability-audit/phase3/ + git log |
 | Top 10 | 9.5/10 (T-3 보류 결정) | META_REVIEW §9 |
 | 카파시 매핑 | 8 본능 평균 76 → 87 (+11점) | KARPATHY_MAPPING §1 |
 
@@ -81,9 +81,9 @@
 
 **답변 본문** (~60초):
 
-> "ReAct 패턴 영역 = 도구 호출 순서 영역 모델 자율 판단 영역 정착. T-1b 영역 절차적 4 호출 (analyze → risk → backtest → recommend) → ReAct 1 호출 영역 전환 (`react_agent.py:28-44` create_react_agent / `chat.py:331-356` USE_REACT_AGENT 토글). ADR 0006 (ReAct 패턴) + ADR 0018 (5 도구 + search_knowledge_base D-5)."
+> "ReAct 패턴 영역 = 도구 호출 순서 영역 모델 자율 판단 영역 정착. T-1b 영역 절차적 4 호출 (analyze → risk → backtest → recommend) → ReAct 1 호출 영역 전환 (`react_agent.py:40-44` create_react_agent / `chat.py:198-201` RAG_FALLBACK_DIRECT 토글 + `chat.py:226-246` ReAct 분기). ADR 0006 (ReAct 패턴) + ADR 0018 (5 도구 + search_knowledge_base D-5)."
 
-**자료 인용**: `react_agent.py:28-44` + `chat.py:331-356` + ADR 0006/0018
+**자료 인용**: `react_agent.py:40-44` + `chat.py:198-201, 226-246` + ADR 0006/0018
 
 **꼬리 질문 영역**:
 - Q: "도구 5개 영역 어떻게 자율 판단?"
@@ -99,9 +99,9 @@
 
 **답변 본문** (~60초):
 
-> "ragas 영역 영역 영역 보류 결정 (ADR 0015 / D-8) — 외부 의존성 영역 영역 영역 영역 자체 4 메트릭 정착: relevance@k / recall@k / LLM-as-judge quality + faithfulness (`eval_rag.py:31-101`). 26 chunks / 3072차원 / Qdrant default (T-6b / ADR 0016) — chromadb fallback 어댑터 (응답 호환 어댑터 패턴 #3)."
+> "ragas 영역 영역 영역 보류 결정 (ADR 0015 / D-8) — 외부 의존성 영역 영역 영역 영역 자체 4 메트릭 정착: relevance@k / recall@k / LLM-as-judge quality + faithfulness (`eval_rag.py:31-102`). 26 chunks / 3072차원 / Qdrant default (T-6b / ADR 0016) — chromadb fallback 어댑터 (응답 호환 어댑터 패턴 #3)."
 
-**자료 인용**: `eval_rag.py:31-101` + ADR 0015 (D-8) + ADR 0016 (T-6b)
+**자료 인용**: `eval_rag.py:31-102` + ADR 0015 (D-8) + ADR 0016 (T-6b)
 
 **꼬리 질문**:
 - Q: "ragas 영역 안 쓴 이유?"
@@ -135,9 +135,9 @@
 
 **답변 본문** (~60초):
 
-> "MCP (Model Context Protocol) 영역 stdio 4 도구 외부 노출 (T-2 / ADR 0008). portfolio-service 영역 4 도메인 도구 (analyze / compute_risk / run_backtest / get_recommendation) 영역 Claude Desktop 영역 직접 호출 가능 (`mcp_server.py:114-160` Pydantic schema validation + stdio_server). 라우터 우회 영역 — frontend / API 영역 X / Claude Desktop ↔ portfolio-service 직접 통합."
+> "MCP (Model Context Protocol) 영역 stdio 4 도구 외부 노출 (T-2 / ADR 0008). portfolio-service 영역 4 도메인 도구 (analyze / compute_risk / run_backtest / get_recommendation) 영역 Claude Desktop 영역 직접 호출 가능 (`mcp_server.py:114-132` list_tools + call_tool 핸들러 / `mcp_server.py:158-160` stdio_server main). Pydantic schema validation. 라우터 우회 영역 — frontend / API 영역 X / Claude Desktop ↔ portfolio-service 직접 통합."
 
-**자료 인용**: `mcp_server.py:114-160` + ADR 0008 (T-2)
+**자료 인용**: `mcp_server.py:114-132, 158-160` + ADR 0008 (T-2)
 
 **꼬리 질문**:
 - Q: "stdio 영역 본질?"
@@ -153,9 +153,9 @@
 
 **답변 본문** (~60초):
 
-> "Streaming SSE 영역 = 신규 endpoint 분리 영역 점진 전환 (PRINCIPLES 패턴 8 / D-6 / ADR 0019). `POST /api/chat/stream` 영역 신규 (기존 /api/chat 0 변경). LangGraph astream_events v2 영역 token + tool events 영역 실시간 영역 (`chat.py:332-369` StreamingResponse + `react_agent.py:52-76` astream_events v2). format = `data: {json}\\n\\n` (SSE 표준)."
+> "Streaming SSE 영역 = 신규 endpoint 분리 영역 점진 전환 (PRINCIPLES 패턴 8 / D-6 / ADR 0019). `POST /api/chat/stream` 영역 신규 (기존 /api/chat 0 변경). LangGraph astream_events v2 영역 token + tool events 영역 실시간 영역 (`chat.py:332-372` StreamingResponse + event_generator + `react_agent.py:52-76` astream_events v2). format = `data: {json}\\n\\n` (SSE 표준)."
 
-**자료 인용**: `chat.py:332-369` + `react_agent.py:52-76` + ADR 0019 (D-6)
+**자료 인용**: `chat.py:332-372` + `react_agent.py:52-76` + ADR 0019 (D-6)
 
 **꼬리 질문**:
 - Q: "astream_events v2 영역?"
@@ -229,9 +229,9 @@
 
 **답변 본문** (~60초):
 
-> "JWT HS512 + Redis blacklist (F-1a / ADR 0004 v2). 발급 영역 — `JwtTokenProvider.java:41-43` Keys.hmacShaKeyFor(64 bytes) → HS512 자동 영역. logout 영역 — `AuthController.java:57-66` 영역 Redis BLACKLIST_PREFIX 영역 token TTL 영역 등록. accessToken 30분 / refreshToken 7일. frontend 영역 httpOnly cookie 영역 보관 (XSS 회피)."
+> "JWT HS512 + Redis blacklist (F-1a / ADR 0004 v2). 발급 영역 — `JwtTokenProvider.java:39-44` (`com.aether.auth.global.security`) @PostConstruct + Keys.hmacShaKeyFor(64 bytes) → HS512 자동 영역. logout 영역 — `AuthService.java:116-120` (`com.aether.auth.application.auth`) → `JwtTokenProvider.java:116-130` blacklistAccessToken() 영역 Redis BLACKLIST_PREFIX 영역 token TTL 영역 등록. accessToken 30분 / refreshToken 7일. frontend 영역 httpOnly cookie 영역 보관 (XSS 회피)."
 
-**자료 인용**: JwtTokenProvider.java:41-43 + AuthController.java:57-66 + ADR 0004 v2 (F-1a)
+**자료 인용**: JwtTokenProvider.java:39-44, 116-130 + AuthService.java:116-120 + ADR 0004 v2 (F-1a)
 
 **꼬리 질문**:
 - Q: "HS512 영역 사유?"
@@ -247,9 +247,9 @@
 
 **답변 본문** (~60초):
 
-> "D-2 운영급 결정 (ADR 0012) — 양면 정책 옵션 A (운영급) 정착. CORS 명시 (`docker-compose.yml:74,99,135` allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID]) + API 키 검증 이중 (lifespan startup failfast + Pydantic validator) + X-Request-ID forward (httpx event_hooks 영역 분산 트레이싱) + cache LRU (CACHE_MAXSIZE=1000)."
+> "D-2 운영급 결정 (ADR 0012) — 양면 정책 옵션 A (운영급) 정착. CORS 명시 (`docker-compose.yml:74,99,135` CORS_ORIGINS 환경변수 + `portfolio-service/app/main.py` / `llm-service/app/main.py` allow_methods=[GET,POST,OPTIONS] / allow_headers=[Authorization,Content-Type,X-Request-ID]) + API 키 검증 이중 (lifespan startup failfast + Pydantic validator) + X-Request-ID forward (httpx event_hooks 영역 분산 트레이싱) + cache LRU (CACHE_MAXSIZE=1000)."
 
-**자료 인용**: docker-compose.yml:74,99,135 + ADR 0012 (D-2) + main.py lifespan
+**자료 인용**: docker-compose.yml:74,99,135 (CORS_ORIGINS) + portfolio-service/llm-service main.py (allow_methods/headers + lifespan) + ADR 0012 (D-2)
 
 **꼬리 질문**:
 - Q: "CORS 영역?"
@@ -301,9 +301,9 @@
 
 **답변 본문** (~60초):
 
-> "양면 정책 15 ADR — 정착 7 (D-2 / D-3 / D-8 / T-6b / D-7 / D-5 / D-6) + 보류 4 (T-3 / D-1 / D-9 / CL-D) + 메타 4 (D-4 / P-1 / V-1 / V-1b / CL-1) + 정리 1. PRINCIPLES 패턴 6 영역 영역 — '박지 않은 결정도 명시 결정만큼 강한 시그널'. 보류 4건 영역 = 시나리오 B 트리거 명시 영역 영역."
+> "양면 정책 15 ADR — 정착 7 (D-2 0012 / D-3 0013 / D-8 0015 / T-6b 0016 / D-7 0017 / D-5 0018 / D-6 0019) + 보류 4 (T-3 0010 / D-1 0011 / D-9 0014 / CL-D 0025) + 메타 4 ADR (D-4 0020 / P-1 0021 / V-1 0022 / V-1b 0023 / 카드 영역 V-1b + CL-1 영역 영역 ADR 영역 통합) + 정리 1 (0024). PRINCIPLES 패턴 6 영역 영역 — '박지 않은 결정도 명시 결정만큼 강한 시그널'. 보류 4건 영역 = 시나리오 B 트리거 명시 영역 영역."
 
-**자료 인용**: docs/adr/0001-0025 + PRINCIPLES.md 패턴 6 + ADR 0010/0011/0014/0025
+**자료 인용**: docs/adr/0001-0025 + docs/adr/README.md 분류 + PRINCIPLES.md 패턴 6
 
 **꼬리 질문**:
 - Q: "보류 결정 사유?"
@@ -339,7 +339,7 @@
 
 **답변 본문** (~45초):
 
-> "Next.js 15 + React 19 + TypeScript + Axios. 페이지 분리 정책 (D-3 / ADR 0013) — 200 LOC 임계 영역 (페이지 50 LOC 영역 영역 = 컴포넌트 조합만). 영역 영역 optimize 영역 (`frontend/src/app/dashboard/optimize/` 344 LOC) + backtest 영역 (217 LOC) — 임계 영역 영역 영역 영역 ADR 0013 영역 영역 영역 영역 영역 영역 영역."
+> "Next.js 15 + React 19 + TypeScript + Axios. 페이지 분리 정책 (D-3 / ADR 0013) — 200 LOC 임계 영역 (페이지 50 LOC 영역 영역 = 컴포넌트 조합만). optimize 영역 **344 → 42 LOC** (D-3 진입 전 → 후 / `frontend/src/app/dashboard/optimize/page.tsx`) + backtest **217 → 39 LOC** (D-3 진입 전 → 후) — 임계 영역 정착 영역 ADR 0013 영역 영역 본질 영역 영역."
 
 **자료 인용**: frontend/src/app/dashboard/optimize/ + ADR 0013 (D-3)
 
@@ -351,19 +351,21 @@
 
 ---
 
-### §5.2 "frontend SSE 어떻게?"
+### §5.2 "SSE 영역 어떻게 정착? (Backend 영역만)"
 
 **답변 본문** (~45초):
 
-> "ReadableStream + TextDecoder 영역 (`frontend/src/services/api.ts` streamChat). EventSource 영역 영역 영역 — POST 영역 (Authorization 헤더 영역) + StreamingResponse 영역 영역. token + tool event 영역 실시간 영역 영역."
+> "**Backend SSE 영역 영역 정착 (ADR 0019 / D-6)** — `POST /api/chat/stream` endpoint + StreamingResponse + LangGraph astream_events v2. **프론트 영역 영역 SSE 클라이언트 영역 영역 영역 영역** (`frontend/src/lib/api/llm.ts` axios 영역 영역 호출만 / streaming X) — 시나리오 B 트리거 (소수 사용자 진입 시점) 영역 영역 진입 영역 명시. Backend 영역 영역 = 신규 endpoint 분리 (PRINCIPLES 패턴 8) + 점진 전환 영역 정착."
 
-**자료 인용**: frontend/src/services/api.ts
+**자료 인용**: ADR 0019 (D-6 / Backend SSE) + `frontend/src/lib/api/llm.ts` (axios 영역 호출 / streaming X)
 
 **꼬리 질문**:
-- Q: "ReadableStream 영역?"
-  - A: "fetch API 영역 영역 영역 영역 영역 영역 stream — body.getReader() 영역 영역 영역 chunk 영역 read 영역 영역. TextDecoder 영역 chunk 영역 영역 영역 → SSE format (`data: {json}\\n\\n`) 영역 영역."
-- Q: "EventSource 영역 영역 안 쓴 이유?"
-  - A: "EventSource 영역 GET only / 헤더 영역 X. POST 영역 + Authorization JWT 영역 영역 영역 영역 영역 ReadableStream 영역 영역 영역 영역 직접 영역."
+- Q: "프론트 영역 영역 영역 정착 사유?"
+  - A: "시나리오 A 영역 영역 = 기술 데모 + 시니어 패턴 (사용자 0명). 프론트 SSE 영역 영역 = 사용자 영역 진입 시점 영역 의무 → 시나리오 B 트리거 영역 영역 진입. PRINCIPLES 패턴 6 (미적용 결정도 시그널) 일관성."
+- Q: "Backend SSE 영역 정착 사유?"
+  - A: "ADR 0019 (D-6) 영역 정착 — SSE endpoint 영역 영역 영역 영역 검증 가능 (curl / Postman). 프론트 영역 영역 영역 영역 사용자 진입 시점 영역 영역 영역 영역 영역 — 양면 정책 옵션 A (Backend 정착) + 옵션 B (프론트 보류) 일관성."
+- Q: "Streaming 영역 영역 영역 영역 영역 검증?"
+  - A: "SSE format `data: {json}\\n\\n` 영역 curl 영역 영역 영역 영역. TG-2c 영역 puppeteer 영역 SSE 영역 영역 영역 = 자동 시연 영역 X — 사용자 수동 검증 영역 영역."
 
 ---
 
@@ -483,7 +485,7 @@
 
 > "시나리오 A 본질 정착 — Top 10 9.5/10 (T-3 보류 결정 / 시나리오 A 일관성). 시나리오 B 트리거 3 질문 답 안 되는 시점 = 시나리오 A 종료. 다음 진입 = Houseman (Phase 7-12 / Subagents / Soul.md / 별도 repo). 본 카드 (I-1) 영역 = Aether 종료 자료 영역 정착."
 
-**자료 인용**: META_REVIEW §9 + SCENARIO §1.1 + HOUSEMAN_APPLICATION.md
+**자료 인용**: META_REVIEW §9 + SCENARIO §1.1 + HOUSEMAN_APPLICATION.md (Aether 종료 시점 작성 예정)
 
 **꼬리 질문**:
 - Q: "Top 10 9.5/10 영역?"
@@ -549,7 +551,7 @@
 
 **답변 본문** (~45초):
 
-> "HOUSEMAN_APPLICATION.md (Phase 7-12) — 카파시 패턴 진화 영역 별도 repo. Aether 영역 = 시나리오 A (포트폴리오) / Houseman 영역 = 영역 영역 영역 영역 영역 (Subagents / Soul.md / 별도 repo). META_REVIEW §6 영역 학습 10건 영역 Houseman 영역 영역 적용. Aether 종료 카드 영역 영역 진입 영역 영역."
+> "HOUSEMAN_APPLICATION.md (Aether 종료 시점 작성 예정 / Phase 7-12 시나리오 정의) — 카파시 패턴 진화 영역 별도 repo. Aether 영역 = 시나리오 A (포트폴리오) / Houseman 영역 = 영역 영역 영역 영역 영역 (Subagents / Soul.md / 별도 repo). META_REVIEW §6 영역 학습 10건 영역 Houseman 영역 영역 적용. Aether 종료 카드 영역 영역 진입 영역 영역."
 
 **시그널**: 별도 repo + 카파시 진화 + 다음 진입 명시
 
@@ -616,3 +618,75 @@
 ## §9 한 문장
 
 I-1 = 4 직무 (AI Engineer / Backend / Full Stack / 시스템 설계) × 5-7 핵심 질문 + 꼬리 질문 3-5건 + §7 까다로운 질문 5-7 + §8 답변 흐름 영역 자료 인용 위치 통합 (DIFFERENTIATION + TEST_REPORT + KARPATHY_MAPPING + ADR 25건 + META_REVIEW + SCENARIO + WORK_PATTERNS + PRINCIPLES + AGENTS) — 면접 직접 활용 자료 영역 정착 / 트랜지언트 영역 (TG-2d) = 시니어 시그널 영역 / Aether 종료 자료 영역 / Houseman 진입 영역 자료 영역.
+
+---
+
+## §10 검증 결과 (I-1-REVIEW 시점 / Claude Code 실측)
+
+> 본 §10 = I-1-REVIEW 카드 영역 자료 인용 위치 (파일:라인 + ADR 번호 + 섹션 참조) 영역 실측 검증 결과 통합. 14 정정 정착 (사실 2 / 라인 6 / 분류 1 / 파일 영역 영역 3 / 미소 2). 본 영역 영역 정정 정착 영역 면접 답변 즉시 활용 가능.
+
+### §10.1 검증 통계
+
+| 영역 | 수 | 비율 |
+|---|---|---|
+| 검증 항목 | 38 | 100% |
+| ✓ 일치 | 24 | 63% |
+| ⚠ 미소 (라인 ±1-3) | 5 | 13% |
+| ✗ 불일치 | 9 | 24% |
+| **정정 정착** | **14** | **37%** |
+
+### §10.2 정정 정착 표
+
+| § | 항목 | 영역 결과 | 정정 정착 |
+|---|---|---|---|
+| §2.2 | 4 MSA + 2 인프라 | ✗ 실제 3 인프라 | 2 → 3 |
+| §2.2 | 14,414 LOC | ✓ AUDIT.md baseline 일치 | - |
+| §2.2 | 635 테스트 | ✓ INTERVIEW.md §4 일치 | - |
+| §2.2 | ADR 25건 | ✓ docs/adr/0001-0025 영역 영역 | - |
+| §2.2 | 카드 24건 | ⚠ phase3 11 + TG/DBG/I/M/V 13 = 24 | 출처 명시 |
+| §2.2 | Top 10 9.5/10 | ✓ META_REVIEW §9 일치 | - |
+| §2.2 | 카파시 76 → 87 | ✓ KARPATHY_MAPPING §1 일치 | - |
+| §3.1 | react_agent.py:28-44 | ✗ 실제 40-44 | 28-44 → 40-44 |
+| §3.1 | chat.py:331-356 USE_REACT_AGENT | ✗ 실제 198-201 + 226-246 (RAG_FALLBACK_DIRECT 토글) | 331-356 → 198-201, 226-246 |
+| §3.2 | eval_rag.py:31-101 | ⚠ 실제 31-102 | 31-101 → 31-102 |
+| §3.3 | grid_search_chunking.py:19-109 | ✓ 영역 일치 | - |
+| §3.4 | mcp_server.py:114-160 | ⚠ 실제 114-132 + 158-160 | 114-160 → 114-132, 158-160 |
+| §3.5 | chat.py:332-369 | ⚠ 실제 332-372 | 332-369 → 332-372 |
+| §3.5 | react_agent.py:52-76 | ✓ 일치 | - |
+| §3.6 | KARPATHY 5 직접 적용 점수 | ✓ KARPATHY_MAPPING §1 일치 | - |
+| §3.7 | TEST_REPORT §3.2 transient | ✓ 일치 | - |
+| §4.1 | docker-compose.yml 4 MSA | ✓ 일치 | - |
+| §4.2 | JwtTokenProvider.java:41-43 | ⚠ 실제 39-44 (@PostConstruct 포함) + 경로 (com.aether.auth.global.security) | 41-43 → 39-44 + 경로 명시 |
+| §4.2 | AuthController.java:57-66 | ✗ 실제 AuthService.java:116-120 + JwtTokenProvider.java:116-130 (blacklistAccessToken) | 정정 |
+| §4.3 | docker-compose.yml CORS allow_methods | ✗ docker-compose.yml = CORS_ORIGINS만 / allow_methods = portfolio/llm main.py | 출처 분리 명시 |
+| §4.4 | optimize.py:128-160 | ✓ 일치 | - |
+| §4.5 | backtest.py:65-111 | ✓ 일치 | - |
+| §4.6 | 메타 4 (5 카드) | ⚠ ADR 4 + 카드 5 (V-1b + CL-1 통합) 분류 모순 | 분류 명시 |
+| §4.7 | SCENARIO.md §1.1 | ✓ 일치 | - |
+| §5.1 | optimize 344 / backtest 217 LOC | ✗ D-3 후 42 / 39 LOC | "344 → 42 / 217 → 39" 명시 |
+| §5.2 | frontend/src/services/api.ts streamChat | ✗ 디렉토리 미존재 / streaming 코드 0건 | 프론트 영역 영역 명시 + Backend SSE만 |
+| §5.3 | docker-compose 7 서비스 | ✓ 일치 | - |
+| §5.4 | constants.ts:2-6 API_URLS | ✓ 일치 | - |
+| §6.1 | 양면 정책 15 ADR | ✓ docs/adr/README.md 일치 | - |
+| §6.3 | KARPATHY 부록 6건 | ✓ KARPATHY_MAPPING §부록 일치 | - |
+| §6.4 | WORK_PATTERNS 18 누적 | ✓ 라인 32 "18건" 일치 | - |
+| §6.5 | ADR 0020 D-4 | ✓ 일치 | - |
+| §6.6 | HOUSEMAN_APPLICATION.md | ✗ 파일 미존재 | "작성 예정" 표기 |
+| §7.3 | TEST_REPORT §3.2 DBG | ✓ 일치 | - |
+| §7.4 | ADR 0025 CL-D | ✓ 일치 | - |
+| §7.6 | HOUSEMAN_APPLICATION.md | ✗ 파일 미존재 | "작성 예정" 표기 |
+| §3.6 | KARPATHY 8 본능 평균 76 → 87 | ✓ 일치 | - |
+| §6.2 | PRINCIPLES 패턴 4 (본질 vs 비본질) | ✓ 일치 | - |
+
+### §10.3 검증 본질 영역
+
+- **frontend SSE 영역 영역 영역**: ADR 0019 (D-6) Backend SSE 영역 정착 영역 / 프론트 영역 영역 axios 영역 호출만 — 시나리오 B 트리거 영역 진입 영역 명시. 양면 정책 옵션 A (Backend 정착) + 옵션 B (프론트 보류) 일관성.
+- **HOUSEMAN_APPLICATION.md**: Aether 종료 시점 작성 예정 (현 시점 미존재) — 시나리오 A 종료 + 시나리오 B 트리거 영역 영역 별도 repo 진입 영역 영역 영역.
+- **D-3 LOC 정정**: 344 → 42 / 217 → 39 = D-3 영역 정착 결과 직접 시연. ADR 0013 §영향 영역 영역 영역.
+- **JwtTokenProvider 경로 정정**: `com.aether.auth.global.security` (본 자료 영역 `.security` 영역 영역 영역). blacklistAccessToken 영역 = JwtTokenProvider:116-130 + AuthService:116-120 (logout) 영역 분산.
+
+### §10.4 시그널
+
+- 본 §10 = 자가 검증 패턴 영역 본질 시그널 (PRINCIPLES 패턴 10 / G1 본질 트리거)
+- 14 정정 정착 = 면접 답변 정확성 ↑ + "실측 영역 영역 영역" 시그널 강화
+- 검증 영역 영역 영역 발견 (frontend SSE 영역 영역 / HOUSEMAN 미존재) = 시나리오 A 일관성 영역 영역 정착
