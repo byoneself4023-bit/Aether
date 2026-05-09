@@ -150,7 +150,8 @@ def fetch_prices_resilient(
 
         try:
             # Provider를 통해 개별 티커 다운로드
-            if isinstance(provider, YFinanceProvider):
+            # DBG-1 / ADR 0026: CompositeProvider 영역 fetch_single_ticker_prices 영역 영역 → hasattr 검사
+            if hasattr(provider, "fetch_single_ticker_prices"):
                 prices = provider.fetch_single_ticker_prices(
                     ticker, period, start_date=start_date, end_date=end_date
                 )
