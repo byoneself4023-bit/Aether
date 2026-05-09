@@ -24,6 +24,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -32,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jsdom": "^25.0.1",
+    "msw": "^2.14.5",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^2.1.9"
