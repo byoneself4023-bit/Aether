@@ -99,7 +99,7 @@
 
 **답변 본문** (~60초):
 
-> "ragas 영역 영역 영역 보류 결정 (ADR 0015 / D-8) — 외부 의존성 영역 영역 영역 영역 자체 4 메트릭 정착: relevance@k / recall@k / LLM-as-judge quality + faithfulness (`eval_rag.py:31-102`). 26 chunks / 3072차원 / Qdrant default (T-6b / ADR 0016) — chromadb fallback 어댑터 (응답 호환 어댑터 패턴 #3)."
+> "ragas 영역 영역 영역 보류 결정 (ADR 0015 / D-8) — 외부 의존성 영역 영역 영역 영역 자체 4 메트릭 정착: relevance@k / recall@k / LLM-as-judge quality + faithfulness (`eval_rag.py:31-102`). 36 chunks (D-7 chunk_size=500/overlap=300 후 / T-6b baseline 26 / ADR 0017) / 3072차원 / Qdrant default (T-6b / ADR 0016) — chromadb fallback 어댑터 (응답 호환 어댑터 패턴 #3)."
 
 **자료 인용**: `eval_rag.py:31-102` + ADR 0015 (D-8) + ADR 0016 (T-6b)
 
@@ -219,7 +219,7 @@
 - Q: "auth Spring Boot 영역 영역?"
   - A: "Java 17 + Spring Boot — JWT HS512 + Redis blacklist 영역 영역 영역 영역 영역 검증된 라이브러리 영역. Python 영역 영역 영역 영역 라이브러리 영역 영역 X / Spring 영역 표준."
 - Q: "portfolio + llm FastAPI 영역?"
-  - A: "Python 3.11 — 수치 계산 (cvxopt / numpy / pandas) + LLM (LangGraph / Gemini SDK). FastAPI 영역 async + 자동 OpenAPI 영역 영역."
+  - A: "Python 3.11 — 수치 계산 (scipy / numpy / pandas) + LLM (LangGraph / Gemini SDK). FastAPI 영역 async + 자동 OpenAPI 영역 영역."
 - Q: "분리 본질?"
   - A: "단일 책임 영역. auth 영역 인증만 / portfolio 영역 수치 계산만 / llm 영역 RAG + LLM만. 영역 영역 영역 변경 영역 영역 영역 영역 영역 영역 영역 영역 X."
 
@@ -265,17 +265,17 @@
 
 **답변 본문** (~60초):
 
-> "Markowitz Mean-Variance Optimization 영역 cvxopt 영역 영역 (T-1 / `optimize.py:128-160`). min_variance / max_sharpe 영역 분기 + 연율화 메트릭 + efficient frontier 20 점 영역 영역 영역. covariance singular 영역 영역 cvxopt regularization 영역 자동 영역 (auto-regularize 영역). TG-2d 시점 시연 ✓ — Sharpe 1.5971 / GOOGL 89.47% + AAPL 10.53% + MSFT 0.00%."
+> "Markowitz Mean-Variance Optimization 영역 scipy SLSQP 영역 영역 (T-1 / `optimizer.py:309,383,488,558` = `scipy.optimize.minimize(method='SLSQP')`). min_variance / max_sharpe 영역 분기 + 연율화 메트릭 + efficient frontier 20 점 영역 영역 영역. covariance singular 영역 영역 Ledoit-Wolf shrinkage + auto-regularize 영역. TG-2d 시점 시연 ✓ — Sharpe 1.5971 / GOOGL 89.47% + AAPL 10.53% + MSFT 0.00%."
 
-**자료 인용**: optimize.py:128-160 + cvxopt + TG-2d 결과
+**자료 인용**: optimizer.py:309,383,488,558 + scipy SLSQP + TG-2d 결과
 
 **꼬리 질문**:
-- Q: "cvxopt 영역?"
-  - A: "Convex Optimization 영역 라이브러리 — Quadratic Programming (QP) 영역 영역 영역. Markowitz 영역 영역 covariance matrix 영역 영역 QP 영역 영역 — cvxopt 영역 적합."
+- Q: "SLSQP 영역?"
+  - A: "Sequential Least Squares Programming — `scipy.optimize.minimize(method='SLSQP')` 영역 영역 비선형 제약 최적화 알고리즘. Markowitz 영역 영역 covariance matrix + 가중치 합 = 1 + non-negative 제약 영역 영역 SLSQP 영역 적합. cvxopt (QP solver) 영역 영역 X = 본 코드 = scipy SLSQP."
 - Q: "Sharpe ratio 영역?"
   - A: "Sharpe = (Rp - Rf) / σp. Rp 영역 = portfolio return / Rf = risk-free rate / σp = portfolio volatility. 영역 영역 영역 영역 영역 영역 영역 영역 영역 영역 1.0 영역 = 양호 / 2.0 영역 = 우수 / 3.0 영역 = 탁월."
 - Q: "MVP + MSR 영역?"
-  - A: "Minimum Variance Portfolio (MVP) = 변동성 영역 최소 / Maximum Sharpe Ratio (MSR) = 위험 조정 수익률 영역 최대. cvxopt 영역 두 영역 영역 영역 영역 영역 — `optimize.py:128-160` 영역 strategy 분기 영역."
+  - A: "Minimum Variance Portfolio (MVP) = 변동성 영역 최소 / Maximum Sharpe Ratio (MSR) = 위험 조정 수익률 영역 최대. scipy SLSQP 영역 두 영역 영역 영역 영역 영역 — `optimizer.py:309,383,488,558` 영역 strategy 분기 영역."
 
 ---
 
@@ -541,7 +541,7 @@
 
 **답변 본문** (~60초):
 
-> "자체 4 메트릭 (D-8 / ADR 0015) — relevance@k / recall@k / LLM-as-judge quality + faithfulness. 26 chunks / 3072차원 / Qdrant. ragas 영역 = 보류 (ADR 0015 / 양면 정책 옵션 B). sources 표시 (📚 참고: ...) — TG-2d 시연 ✓. 영역 영역 영역 영역 영역 영역 영역 영역 = 시나리오 B 트리거 (도메인 검증 + 사용자 5+ 인터뷰)."
+> "자체 4 메트릭 (D-8 / ADR 0015) — relevance@k / recall@k / LLM-as-judge quality + faithfulness. 36 chunks (D-7 후 / T-6b baseline 26 / ADR 0017) / 3072차원 / Qdrant. ragas 영역 = 보류 (ADR 0015 / 양면 정책 옵션 B). sources 표시 (📚 참고: ...) — TG-2d 시연 ✓. 영역 영역 영역 영역 영역 영역 영역 영역 = 시나리오 B 트리거 (도메인 검증 + 사용자 5+ 인터뷰)."
 
 **시그널**: 자체 메트릭 + 양면 정책 + sources 영역 + 시나리오 B 트리거
 

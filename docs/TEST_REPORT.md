@@ -119,7 +119,7 @@ TG-2b 시점 user (`tg2b-1778235563@aether.local` / id=15) 영역 = TG-2c 시점
 
 | # | 시나리오 | 영역 | 결과 (TG-2d 실측 / **본 시점 정상 — 어제 DBG-1 영역 영역 영역**) |
 |---|---|---|---|
-| 1 | 정상 — Markowitz max_sharpe / AAPL+MSFT+GOOGL / 2023-05-09~2026-05-09 (default) | cvxopt + Sharpe | **✓ 통과** — 기대 수익률 45.98% (연율) / 변동성 27.54% / Sharpe Ratio **1.5971** / 최적 비중: GOOGL 89.47% + AAPL 10.53% + MSFT 0.00% / AI 분석 영역 영역 정상 (analyze_portfolio_tool 자동 호출) |
+| 1 | 정상 — Markowitz max_sharpe / AAPL+MSFT+GOOGL / 2023-05-09~2026-05-09 (default) | scipy SLSQP + Sharpe | **✓ 통과** — 기대 수익률 45.98% (연율) / 변동성 27.54% / Sharpe Ratio **1.5971** / 최적 비중: GOOGL 89.47% + AAPL 10.53% + MSFT 0.00% / AI 분석 영역 영역 정상 (analyze_portfolio_tool 자동 호출) |
 | 2 | Edge — 종목 1개 / covariance singular | 부분 실패 영역 | 보류 — 시간 영역 영역 (본 카드 = 재시연 영역) |
 | 3 | 에러 — 가격 데이터 부재 | 에러 응답 | 보류 — 시간 영역 영역 |
 
