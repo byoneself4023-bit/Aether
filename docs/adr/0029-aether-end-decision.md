@@ -73,13 +73,14 @@ Phase 1 종료 (DBG-1 / DBG-2 / DEV-FE-1 / PR #49 / #50 / #51) + TG-MANUAL 정�
 - 영역 영역 = 학습 자산 손실 위험 / 시그널 X
 - Houseman = 별도 repo (시나리오 분리 / 영역 영역 영역 영역 영역 영역 영역 영역 X)
 
-### 분기 5: README.md 갱신 (Aether 종료 명시) — **선택 (사용자 결정)**
+### 분기 5: README.md 갱신 (Aether 종료 명시) — **옵션 A 정착 (README-UPDATE 카드 / 2026-05-10)**
 
 근거:
 
-- README.md 영역 = 영역 영역 영역 영역 영역 영역 — 사용자 결정 의무
-- 본 카드 영역 영역 = 의무 X / 선택 영역
-- 사용자 결정 영역 = 본 카드 영역 영역 X / 별도 영역 정착 영역
+- 진입자 = README.md 즉시 진입 → Status § 명시 의무
+- 자료 인용 4건 (TEST_GUIDE_MANUAL / INTERVIEW_SIMULATION / RETROSPECTIVE / HOUSEMAN_APPLICATION) + ADR 0029 자기 인용
+- 양면 정책 일관성 — 보류 결정 = 시그널 / 본 분기 = 정착 결정 의무 (사용자 본능 결정 / 카드 2 진입)
+- 본 카드 (README-UPDATE) = AETHER-END §분기 5 후속 정착 / 별도 신규 ADR X (양면 정책 19 ADR 변경 X)
 
 ---
 

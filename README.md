@@ -6,6 +6,22 @@ Markowitz 최적화 + LLM 해석 + 실시간 리스크 분석을 제공하는 �
 
 ---
 
+## 📌 Status (2026-05-10)
+
+**Aether 시나리오 A 본질 정착 완료** — 카드 33 마감 / 양면 정책 19 ADR / 면접 시연 4/5 정착.
+
+본 repo = 시연 + 면접 자료 보존. 다음 = Houseman (별도 repo / Phase 7-12 / 사용자 직접 정착).
+
+### 진입자 자료
+
+- **시연 가이드**: [`docs/TEST_GUIDE_MANUAL.md`](docs/TEST_GUIDE_MANUAL.md) — 일상 + 면접 시점 분리
+- **면접 답변 시뮬**: [`docs/INTERVIEW_SIMULATION.md`](docs/INTERVIEW_SIMULATION.md) — 4 직무
+- **종합 회고**: [`docs/RETROSPECTIVE.md`](docs/RETROSPECTIVE.md) — 32 카드 흐름 + 학습 10건
+- **Houseman 진입 본질**: [`docs/HOUSEMAN_APPLICATION.md`](docs/HOUSEMAN_APPLICATION.md)
+- **종료 결정 추적**: [`docs/adr/0029-aether-end-decision.md`](docs/adr/0029-aether-end-decision.md)
+
+---
+
 ## 아키텍처
 
 ```
