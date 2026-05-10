@@ -132,7 +132,7 @@ curl -X POST http://localhost:8002/api/chat \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"message":"샤프 비율이 무엇인가요?"}'
-# → answer + sources (📚 영역 표기) / 26 chunks / 3072차원 / Qdrant
+# → answer + sources (📚 영역 표기) / 36 chunks (D-7 / ADR 0017) / 3072차원 / Qdrant
 ```
 
 #### §1.2.5 MCP (Claude Desktop / 사용자 수동)
@@ -246,9 +246,9 @@ docker compose exec postgres psql -U aether -d aether_auth \
 | 분 | 시연 | 답변 포인트 |
 |---|---|---|
 | 1 | signup + login + /dashboard + logout | F-1a / ADR 0004 v2 / HS512 + Redis blacklist + DBG-2 (이메일 검증 강화 / ADR 0027) |
-| 2 | optimize (AAPL+MSFT+GOOGL → Sharpe 1.5971) | T-1 / cvxopt Markowitz / **DBG-1 transient 발견 + fallback 정착 / ADR 0026** |
+| 2 | optimize (AAPL+MSFT+GOOGL → Sharpe 1.5971) | T-1 / scipy SLSQP Markowitz / **DBG-1 transient 발견 + fallback 정착 / ADR 0026** |
 | 3 | backtest (누적 155.74% / Sharpe 0.9051) | walk-forward / 분기 리밸런싱 (63일) / 8 메트릭 |
-| 4 | RAG chat (질문 + 📚 sources) | D-5 / ADR 0018 / ReAct 5 도구 자율 판단 / 26 chunks / 3072차원 / Qdrant |
+| 4 | RAG chat (질문 + 📚 sources) | D-5 / ADR 0018 / ReAct 5 도구 자율 판단 / 36 chunks (D-7 / ADR 0017) / 3072차원 / Qdrant |
 | 5 | 차별화 (AGENTS.md §7 / ADR README) | **양면 정책 18 ADR** / 카파시 매핑 8 본능 76→87 / WORK_PATTERNS / **AUDIT-1 자가 검증 패턴** |
 
 ### §2.4 면접 시점 시그널 흐름
@@ -431,7 +431,7 @@ docker compose exec postgres pg_dump -U aether aether_auth > backup_$(date +%Y%m
 ### §5.3 면접 시연 5분 (5 항목)
 
 - [ ] **분 1**: signup + login + `/dashboard` 진입 + logout (HS512 + Redis blacklist + DBG-2)
-- [ ] **분 2**: optimize AAPL+MSFT+GOOGL → Sharpe 1.5971 (cvxopt + DBG-1 fallback)
+- [ ] **분 2**: optimize AAPL+MSFT+GOOGL → Sharpe 1.5971 (scipy SLSQP + DBG-1 fallback)
 - [ ] **분 3**: backtest 누적 155.74% / Sharpe 0.9051 / 16 리밸런싱 (walk-forward + 8 메트릭)
 - [ ] **분 4**: chat "샤프 비율?" → answer + 📚 sources (ReAct 5 도구 + Qdrant + RAG)
 - [ ] **분 5**: 차별화 (AGENTS.md §7 양면 정책 18 ADR / 카파시 매핑 / AUDIT-1 자가 검증)

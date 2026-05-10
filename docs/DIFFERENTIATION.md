@@ -162,7 +162,7 @@
 - 효율적 프론티어: 144-160 (request.include_frontier 옵션 / efficient_frontier 20 points)
 
 **차별화 본질**:
-- cvxopt 기반 MVP (min_variance) + MSR (max_sharpe).
+- scipy SLSQP 기반 MVP (min_variance) + MSR (max_sharpe).
 - 진단 정보 영역 — converged / iterations / condition_number / covariance_validation (regularized 영역 명시).
 
 ### §3.5 walk-forward 백테스트

@@ -34,7 +34,7 @@ H-4 → H-1 → H-7 → H-6 → H-10+L-7 (5/10 Quick Win)
 - 4 MSA + 3 인프라 (auth Spring Boot / portfolio + llm FastAPI / frontend Next.js / postgres + redis + qdrant)
 - LangGraph ReAct + 5 도구 + RAG + Qdrant + SSE
 - JWT HS512 + Redis blacklist + httpOnly cookie
-- Markowitz cvxopt + walk-forward 8 메트릭
+- Markowitz scipy SLSQP + walk-forward 8 메트릭
 - T-3 Multi-Agent 보류 결정 (시나리오 A 일관성)
 
 ### 메타 시스템 정착 (2026-05-04 / 4 카드)
@@ -297,7 +297,7 @@ Phase 0-1 진입 (2) + Top 10 진행 (8) = 10 카드 (Top 10 본격)
    → HS512 + Redis blacklist + DBG-2 (이메일 검증 강화)
 
 분 2: optimize Sharpe 1.5971
-   → cvxopt + DBG-1 transient fallback + ADR 0026
+   → scipy SLSQP + DBG-1 transient fallback + ADR 0026
 
 분 3: backtest 누적 155.74% + 8 메트릭
    → walk-forward + 분기 리밸런싱

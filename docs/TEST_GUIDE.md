@@ -21,7 +21,7 @@ docker compose ps  # 6 서비스 health check 영역
 **정착 의무 영역** (6 서비스):
 - `aether-postgres` (5432 / authdb)
 - `aether-redis` (6379 / blacklist + cache)
-- `aether-qdrant` (6333 / RAG aether_knowledge / 26 chunks / 3072차원)
+- `aether-qdrant` (6333 / RAG aether_knowledge / 36 chunks (D-7 / ADR 0017) / 3072차원)
 - `aether-auth` (8003 / Spring Boot)
 - `aether-portfolio` (8001 / FastAPI)
 - `aether-llm` (8002 / FastAPI)
@@ -75,7 +75,7 @@ npm run dev  # localhost:3000
 - [ ] 환경변수 6건 정착 (.env)
 - [ ] localStorage 정리 (브라우저 DevTools / Application / Storage)
 - [ ] 검증용 user 정착 (signup 또는 기존 user)
-- [ ] Qdrant aether_knowledge 컬렉션 26 chunks 검증
+- [ ] Qdrant aether_knowledge 컬렉션 36 chunks 검증 (D-7 / ADR 0017)
 
 ---
 
@@ -123,7 +123,7 @@ npm run dev  # localhost:3000
   - tickers (배열) / strategy ("min_variance" / "max_sharpe") / 기간
   - 부분 실패 허용 (실패 티커 → failed_tickers / warnings)
   - 드리프트 탐지 (최근 20일 vs 과거)
-- `optimizer.py` — Markowitz / Sharpe / cvxopt
+- `optimizer.py` — Markowitz / Sharpe / scipy SLSQP
 - `efficient_frontier()` — 프론티어 차트 영역
 
 **정상 시나리오**:
@@ -134,12 +134,12 @@ npm run dev  # localhost:3000
 
 **Edge**:
 - 티커 1개만 → 400 "At least 2 valid tickers"
-- 티커 100개 → 처리 가능 (성능 영역 / cvxopt)
+- 티커 100개 → 처리 가능 (성능 영역 / scipy SLSQP)
 - 무효 티커 (`XXXXX`) → invalid_tickers 응답 / 부분 실패
 
 **에러**:
 - yfinance 데이터 부족 (신규 상장 / 1개월 미만) → 400 + 데이터 부족 메시지
-- cvxopt 수렴 실패 (특이 covariance) → 500 + 진단 정보
+- SLSQP 수렴 실패 (특이 covariance) → 500 + 진단 정보
 
 ---
 
@@ -273,7 +273,7 @@ EXIT
 
 ```bash
 curl http://localhost:6333/collections                    # 컬렉션 영역
-curl http://localhost:6333/collections/aether_knowledge   # 26 chunks 영역
+curl http://localhost:6333/collections/aether_knowledge   # 36 chunks 영역 (D-7 / ADR 0017)
 ```
 
 ### §3.5 진단 5 절차 (VERIFICATION.md §0 인용)
@@ -293,7 +293,7 @@ curl http://localhost:6333/collections/aether_knowledge   # 26 chunks 영역
 | 분 | 시연 영역 | 차별화 영역 |
 |----|----------|-----------|
 | 1분 | 회원가입 + 로그인 + 로그아웃 + blacklist 검증 | JWT HS512 / Redis blacklist / refresh reuse 감지 |
-| 1분 | 포트폴리오 최적화 + 프론티어 차트 | Markowitz + Sharpe / cvxopt / 부분 실패 허용 / 드리프트 탐지 |
+| 1분 | 포트폴리오 최적화 + 프론티어 차트 | Markowitz + Sharpe / scipy SLSQP / 부분 실패 허용 / 드리프트 탐지 |
 | 1분 | 백테스트 line chart + 8 메트릭 | walk-forward / 시간순 분리 / 거래비용 반영 |
 | 1분 | RAG 챗 5 도구 자율 판단 + sources 표시 | LangGraph ReAct / Gemini 2.0 Flash / Qdrant 3072차원 / SSE streaming |
 | 1분 | MCP Claude Desktop 통합 + 차별화 카드 | T-2 stdio 4 도구 / 양면 정책 15 ADR / D-7 grid search |
@@ -324,7 +324,7 @@ curl http://localhost:6333/collections/aether_knowledge   # 26 chunks 영역
 - [ ] 환경변수 6건 정착
 - [ ] localStorage 정리
 - [ ] 검증용 user 정착
-- [ ] Qdrant aether_knowledge 26 chunks
+- [ ] Qdrant aether_knowledge 36 chunks (D-7 / ADR 0017)
 
 ### §5.2 5 기능 정상 흐름 (5 항목)
 
