@@ -309,6 +309,48 @@ Phase 0-1 진입 (2) + Top 10 진행 (8) = 10 카드 (Top 10 본격)
    → 양면 정책 19 ADR + 카파시 매핑 + AUDIT 자가 검증
 ```
 
+### 본 시연 실측 결과 (2026-05-10 / SHOW + SHOW-RESULT 통합 / puppeteer MCP UI 자동 시연)
+
+본 시점 puppeteer MCP UI 자동 시연 (Step 1-7 = 100% UI / Step 8 = MCP stdio JSON-RPC) — TG-2d 결과 비교 검증.
+
+```text
+Step 1 메인 진입: ✓ "회원가입 / 로그인 / 시작하기" 버튼 표시
+Step 2 signup: ✓ id=2 → /login redirect (DBG-2 검증 = container stale 발견 / rebuild 후 정착)
+Step 3 login + 잘못된 비번: ✓ /dashboard 진입 + 401 / A001 (잘못된 비번)
+Step 4 optimize: ✓ Sharpe 1.5567 / GOOGL 88.90% + AAPL 11.10% / Expected 44.63% / Vol 27.38%
+   → TG-2d 1.5971 ↔ 본 시점 1.5567 / 2.5% 차이 = yfinance 시점 변동 (자연스러운 / 본질 일치)
+Step 5 backtest: ✓ 누적 155.74% / Sharpe 0.9051 / MDD 30.34% / 칼마 0.8771 / 승률 53.84% / 16 리밸런싱
+   → TG-2d 8/8 정확 일치 (5년 historical = stable)
+Step 6 chat: ✓ 답변 (Sharpe 정의+공식+해석) + 📚 참고 sources 3건 (샤프 비율 / 성과 평가 지표 / 포트폴리오 최적화 전략)
+Step 7 logout: ✓ /login redirect / localStorage 토큰 제거 / Redis blacklist 정상 (후속 /me 401)
+Step 8 MCP: ✓ stdio JSON-RPC initialize + tools/list (4 도구) + analyze_portfolio + compute_risk + get_recommendation
+   → 3/4 도구 정착 / run_backtest schema 갭 발견 (mcp_server.py:73 datetime index ↔ 'date' column 갭)
+Frontend npm test: ✓ 26 passed (10 files / DEV-FE-1 정착 일치)
+```
+
+### 발견 3건 (시연 영역 / 시나리오 B 트리거 / 양면 정책 보류 = 시그널)
+
+```text
+1. DBG-2 container stale 갭
+   - 코드 = SignUpRequest.java @Pattern 정착 (PR #50 / 1317fae)
+   - container = aether-auth-service:latest (3 days build / DBG-2 머지 전 빌드)
+   - 영향 = `foo@bar` (TLD 없음) signup 정상 통과 (DBG-2 차단 X)
+   - 정정 = `docker compose build auth-service && docker compose up -d --force-recreate auth-service` 후 ✓ 400 / C002 발화
+   - 시그널 = "코드 정착 ↔ 배포 갭" / 운영 본질 / CI/CD 자동화 트리거 = 시나리오 B
+
+2. login 응답 envelope `{success, data:{...}}`
+   - SHOW_GUIDE.md curl 예시 본문 envelope 명시 X
+   - 영향 = `data.accessToken` 추출 의무 (top-level X)
+   - 정정 = 선택 (SHOW_GUIDE.md §0 또는 §C 본문 추가)
+
+3. MCP run_backtest schema 갭
+   - mcp_server.py:73 `index=pd.to_datetime(args["dates"])` (datetime index)
+   - walk_forward_backtest 내부 = "None of ['date'] are in the columns" (date column 기대)
+   - 영향 = MCP run_backtest 호출 시 RuntimeError
+   - 정정 = mcp_server.py wrapper 코드 정정 (시나리오 B 시점 / DBG-N 카드 분리 의무)
+   - 시그널 = MCP wrapper ↔ 내부 함수 schema 일관성 X / Claude Desktop 실사용 검증 = 시나리오 B 트리거
+```
+
 ### 답변 시그널 5건
 
 ```text
