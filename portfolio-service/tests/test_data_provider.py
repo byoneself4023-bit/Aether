@@ -130,10 +130,20 @@ class TestYFinanceProvider:
 
         assert result is False
 
+    @patch("app.services.data_provider.time.sleep")
     @patch("app.services.data_provider.yf.Ticker")
-    def test_validate_ticker_exception(self, mock_ticker):
-        """티커 검증 중 예외 처리"""
-        mock_ticker.side_effect = Exception("Network error")
+    def test_validate_ticker_transient_raises(self, mock_ticker, _mock_sleep):
+        """transient(rate limit/network)는 retry 소진 후 raise — invalid로 위장 금지 (⑥)."""
+        mock_ticker.side_effect = Exception("Too Many Requests 429")
+
+        provider = YFinanceProvider()
+        with pytest.raises(RateLimitError):
+            provider.validate_ticker("AAPL")
+
+    @patch("app.services.data_provider.yf.Ticker")
+    def test_validate_ticker_permanent_returns_false(self, mock_ticker):
+        """비-transient(영구) 오류는 invalid로 간주 → False."""
+        mock_ticker.side_effect = Exception("delisted symbol")
 
         provider = YFinanceProvider()
         result = provider.validate_ticker("AAPL")
