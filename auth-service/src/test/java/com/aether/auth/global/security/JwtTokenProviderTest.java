@@ -10,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -18,8 +17,10 @@ import org.mockito.quality.Strictness;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.security.core.Authentication;
 
 import static org.assertj.core.api.Assertions.*;
@@ -41,10 +42,13 @@ class JwtTokenProviderTest {
 
     private JwtTokenProvider jwtTokenProvider;
 
+    private static final String SECRET =
+            "aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256";
+
     @BeforeEach
     void setUp() {
         given(jwtProperties.getSecret())
-                .willReturn("aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256");
+                .willReturn(SECRET);
         given(jwtProperties.getAccessExpiration()).willReturn(1800000L);
         given(jwtProperties.getRefreshExpiration()).willReturn(604800000L);
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
@@ -105,7 +109,7 @@ class JwtTokenProviderTest {
         @DisplayName("검증 실패 - 만료된 토큰")
         void validateToken_Expired() {
             // 이미 만료된 토큰 직접 생성
-            String secret = "aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256";
+            String secret = SECRET;
             Date now = new Date();
             Date pastExpiry = new Date(now.getTime() - 1000); // 1초 전에 만료
 
@@ -144,29 +148,43 @@ class JwtTokenProviderTest {
     class RefreshToken {
 
         @Test
-        @DisplayName("생성 성공 - jti 포함")
+        @DisplayName("생성 성공 - token+jti 단일 EVAL 원자 저장")
         void createRefreshToken_Success() {
             String token = jwtTokenProvider.createRefreshToken(1L);
 
             assertThat(token).isNotNull().isNotEmpty();
-            // refresh token 저장 + jti 저장 = 2회 호출
-            verify(valueOperations, times(2)).set(anyString(), anyString(), anyLong(), any());
+            // ④ 원자성: 순차 2회 set이 아니라 두 키를 한 번의 Lua EVAL로 저장
+            verify(redisTemplate).execute(
+                    any(RedisScript.class),
+                    eq(List.of("refresh:1", "refresh_jti:1")),
+                    anyString(), anyString(), anyString()
+            );
+        }
+
+        @Test
+        @DisplayName("원자성 - 순차 set 미사용 (token↔jti 부분 실패 경로 제거)")
+        void createRefreshToken_UsesAtomicScript_NotSequentialSets() {
+            jwtTokenProvider.createRefreshToken(1L);
+
+            // ④ 원자성: 개별 set이 사라지고 단일 EVAL만 사용 → 부분 실패로 인한 불일치 불가
+            verify(valueOperations, never()).set(anyString(), anyString(), anyLong(), any());
+            verify(redisTemplate, times(1))
+                    .execute(any(RedisScript.class), anyList(), any(), any(), any());
         }
 
         @Test
         @DisplayName("검증 성공")
         void validateRefreshToken_Success() {
-            // createRefreshToken에서 jti 캡처
-            ArgumentCaptor<String> jtiCaptor = ArgumentCaptor.forClass(String.class);
-
             String refreshToken = jwtTokenProvider.createRefreshToken(1L);
 
-            // refresh_jti:1 에 저장된 jti 값을 캡처
-            verify(valueOperations, times(2)).set(anyString(), jtiCaptor.capture(), anyLong(), any());
-            // 첫 번째 호출: refresh:1 → token, 두 번째 호출: refresh_jti:1 → jti
-            String storedJti = jtiCaptor.getAllValues().get(1);
+            // 저장된 값 = 발급된 token, jti = token의 id 클레임 (EVAL 인자와 동일)
+            String storedJti = Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8)))
+                    .build()
+                    .parseSignedClaims(refreshToken)
+                    .getPayload()
+                    .getId();
 
-            // Redis에서 토큰과 jti를 반환하도록 설정
             given(valueOperations.get("refresh:1")).willReturn(refreshToken);
             given(valueOperations.get("refresh_jti:1")).willReturn(storedJti);
 

@@ -9,6 +9,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,6 +21,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -35,6 +38,14 @@ public class JwtTokenProvider {
     private static final String REFRESH_TOKEN_PREFIX = "refresh:";
     private static final String REFRESH_JTI_PREFIX = "refresh_jti:";
     private static final String BLACKLIST_PREFIX = "blacklist:";
+
+    // ④ 원자성: token 키 + jti 키를 단일 EVAL로 원자 저장 (부분 실패 시 둘 다 미반영)
+    private static final RedisScript<Long> STORE_REFRESH_TOKEN_SCRIPT = new DefaultRedisScript<>(
+            "redis.call('PSETEX', KEYS[1], ARGV[3], ARGV[1]) "
+                    + "redis.call('PSETEX', KEYS[2], ARGV[3], ARGV[2]) "
+                    + "return 1",
+            Long.class
+    );
 
     @PostConstruct
     public void init() {
@@ -71,22 +82,17 @@ public class JwtTokenProvider {
                 .signWith(secretKey)
                 .compact();
 
-        // Redis에 refresh token 저장
+        // ④ 원자성: refresh token + jti를 단일 Lua EVAL로 원자 저장.
+        // (기존 순차 2회 set은 1번째만 성공 시 token↔jti 불일치 → validateRefreshToken에서
+        //  jti mismatch로 오인 → 전체 세션 무효화되는 부분 실패 위험이 있었음)
         String tokenKey = REFRESH_TOKEN_PREFIX + userId;
-        redisTemplate.opsForValue().set(
-                tokenKey,
-                refreshToken,
-                jwtProperties.getRefreshExpiration(),
-                TimeUnit.MILLISECONDS
-        );
-
-        // Redis에 jti 저장 (reuse detection용)
         String jtiKey = REFRESH_JTI_PREFIX + userId;
-        redisTemplate.opsForValue().set(
-                jtiKey,
+        redisTemplate.execute(
+                STORE_REFRESH_TOKEN_SCRIPT,
+                List.of(tokenKey, jtiKey),
+                refreshToken,
                 jti,
-                jwtProperties.getRefreshExpiration(),
-                TimeUnit.MILLISECONDS
+                String.valueOf(jwtProperties.getRefreshExpiration())
         );
 
         return refreshToken;
