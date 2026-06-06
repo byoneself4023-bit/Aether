@@ -64,7 +64,7 @@ public class JwtTokenProvider {
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
-                .signWith(secretKey)
+                .signWith(secretKey, Jwts.SIG.HS512)
                 .compact();
     }
 
@@ -79,7 +79,7 @@ public class JwtTokenProvider {
                 .id(jti)
                 .issuedAt(now)
                 .expiration(expiry)
-                .signWith(secretKey)
+                .signWith(secretKey, Jwts.SIG.HS512)
                 .compact();
 
         // ④ 원자성: refresh token + jti를 단일 Lua EVAL로 원자 저장.

@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
@@ -298,6 +299,37 @@ class JwtTokenProviderTest {
 
             boolean result = jwtTokenProvider.isBlacklisted("some.token");
             assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("서명 알고리즘 계약 (HS512 명시)")
+    class AlgorithmContract {
+
+        // ①SSoT/③일관성: Java가 토큰을 HS512로 "명시" 발급함을 증명.
+        // Python 양 서비스는 algorithms=["HS512"]로 고정 검증(각 서비스 test_auth_middleware.py) →
+        // 두 런타임 단언의 합으로 계약 일치를 입증. 단일 테스트가 JVM↔Python을 실제로 가로지르진 못함(한계).
+        private final SecretKey verifyKey =
+                Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+
+        @Test
+        @DisplayName("access token 헤더 alg == HS512")
+        void accessToken_AlgIsHS512() {
+            String token = jwtTokenProvider.createAccessToken(1L, "test@example.com", "USER");
+
+            String alg = Jwts.parser().verifyWith(verifyKey).build()
+                    .parseSignedClaims(token).getHeader().getAlgorithm();
+            assertThat(alg).isEqualTo("HS512");
+        }
+
+        @Test
+        @DisplayName("refresh token 헤더 alg == HS512")
+        void refreshToken_AlgIsHS512() {
+            String token = jwtTokenProvider.createRefreshToken(1L);
+
+            String alg = Jwts.parser().verifyWith(verifyKey).build()
+                    .parseSignedClaims(token).getHeader().getAlgorithm();
+            assertThat(alg).isEqualTo("HS512");
         }
     }
 }

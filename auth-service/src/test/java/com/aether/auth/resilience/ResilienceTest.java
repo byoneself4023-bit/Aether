@@ -56,7 +56,9 @@ import static org.mockito.BDDMockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ResilienceTest {
 
-    private static final String TEST_SECRET = "ThisIsATestSecretKeyForJwtTokenGeneration123!";
+    // HS512(64바이트) 키 필요 — 짧은 키면 createAccessToken/createRefreshToken이 WeakKeyException
+    private static final String TEST_SECRET =
+            "ThisIsATestSecretKeyForJwtTokenGeneration1234567890AbCdEfGhIjKlMn";
     private SecretKey secretKey;
 
     @BeforeEach
