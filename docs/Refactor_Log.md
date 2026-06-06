@@ -5,10 +5,14 @@
 | 카드 | 원칙 | 위치 | before | after | 사유 |
 |---|---|---|---|---|---|
 | C | ①SSoT / ③일관성 | `auth-service` `JwtTokenProvider.java`(서명 2곳) + `JwtProperties.java` | 키 길이로 서명 알고리즘 **암묵 결정**(`.signWith(secretKey)` → 32B=HS256·48B=HS384·64B=HS512), 최소 길이 32 | `.signWith(secretKey, Jwts.SIG.HS512)` **명시** + `MINIMUM_SECRET_LENGTH` 64로 강제 | 시크릿이 32~63B면 Java=HS256/384 / Python=HS512로 어긋나 **전 서비스 인증 붕괴**. 알고리즘을 명시·강제해 미래 misconfiguration의 silent 다운그레이드 차단. Python 양 서비스는 이미 `algorithms=["HS512"]`(무변경). |
+| D | ② SRP | `portfolio-service` `routers/optimize.py` `optimize_portfolio()` + 신규 `mappers/optimization_mapper.py` | 라우터 한 함수가 조회+검증+메트릭+계산+**직렬화(응답 매핑)**+로깅을 다 함(변경 이유 5+) | 응답 매핑 3개(metrics 연율화 / diagnostics 중첩 / frontier 모양)를 mapper 순수함수로 분리. 조회·계산은 기존 `services/` 그대로 호출(라우터=오케스트레이션) | 변경 이유 분리 — 응답 스키마/연율화/frontier 모양 변경이 라우터를 안 건드림. 동작 불변(테스트 227→227 green). |
 
 ## 제외 (과적용 경계 — `docs/6_Principle.md` §0.3)
 
 - **E. JWT secret 3중복(auth·portfolio·llm) "통일"은 제외.** 세 서비스는 `docker-compose.yml`이 동일 `${JWT_SECRET}`를 주입하므로 **`.env`가 이미 SSoT**다. 값이 코드에 박혀 분기된 게 아니라 단일 출처에서 참조될 뿐이라 중복이 아니다. 별도 통일 레이어를 만드는 건 SSoT 과적용 → 제외.
+- **weights_dict(4줄)·period 문자열·최종 `OptimizeResponse` 조립은 라우터에 유지.** 단순 필드 결합은 오케스트레이션이며 SRP는 줄 수가 아니라 변경 이유 개수다(§2②). 5줄 함수까지 더 쪼개지 않는다.
+- **조회·계산 로직(`services/data.py`·`services/optimizer.py`)은 이미 분리됨 → 건드리지 않음(중복 분리 금지).**
+- mapper의 연율화는 기존 인라인 `*252`/`*√252` 수식을 그대로 옮김(`covariance.annualize`로 갈아끼우지 않음 — behavior drift 방지).
 
 ## 메모 — 프롬프트 전제 정정 (C 작업 중 실측)
 
