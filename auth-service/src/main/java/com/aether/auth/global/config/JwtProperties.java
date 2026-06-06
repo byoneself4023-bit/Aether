@@ -27,7 +27,7 @@ public class JwtProperties {
             throw new IllegalStateException(
                     "JWT_SECRET is not set. "
                     + "Please set the JWT_SECRET environment variable. "
-                    + "The secret must be at least " + MINIMUM_SECRET_LENGTH + " characters long."
+                    + "The secret must be at least " + MINIMUM_SECRET_LENGTH + " bytes long."
             );
         }
         if (secret.getBytes(StandardCharsets.UTF_8).length < MINIMUM_SECRET_LENGTH) {

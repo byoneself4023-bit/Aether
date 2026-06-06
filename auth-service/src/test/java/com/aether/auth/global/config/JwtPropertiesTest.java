@@ -55,7 +55,7 @@ class JwtPropertiesTest {
         @DisplayName("정상 시크릿으로 검증 통과")
         void validate_ValidSecret_Success() {
             JwtProperties props = new JwtProperties();
-            props.setSecret("aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256");
+            props.setSecret("aether-jwt-test-secret-key-64-bytes-minimum-for-hmac-sha512-algo!");
             props.setAccessExpiration(1800000L);
             props.setRefreshExpiration(604800000L);
 

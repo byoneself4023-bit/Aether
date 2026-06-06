@@ -44,7 +44,7 @@ class JwtTokenProviderTest {
     private JwtTokenProvider jwtTokenProvider;
 
     private static final String SECRET =
-            "aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256";
+            "aether-jwt-test-secret-key-64-bytes-minimum-for-hmac-sha512-algo!";
 
     @BeforeEach
     void setUp() {
