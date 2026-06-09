@@ -29,7 +29,7 @@ spring:
       port: 6379
 
 jwt:
-  secret: aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256-test
+  secret: aether-jwt-test-secret-key-64-bytes-minimum-for-hmac-sha512-test
   access-expiration: 1800000
   refresh-expiration: 604800000
 

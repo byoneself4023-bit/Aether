@@ -39,7 +39,7 @@ class JwtPropertiesTest {
         }
 
         @Test
-        @DisplayName("짧은 시크릿(32바이트 미만) 시 시작 실패")
+        @DisplayName("짧은 시크릿(64바이트 미만) 시 시작 실패")
         void validate_ShortSecret_ThrowsException() {
             JwtProperties props = new JwtProperties();
             props.setSecret("too-short-key");
@@ -55,7 +55,7 @@ class JwtPropertiesTest {
         @DisplayName("정상 시크릿으로 검증 통과")
         void validate_ValidSecret_Success() {
             JwtProperties props = new JwtProperties();
-            props.setSecret("aether-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256");
+            props.setSecret("aether-jwt-test-secret-key-64-bytes-minimum-for-hmac-sha512-algo!");
             props.setAccessExpiration(1800000L);
             props.setRefreshExpiration(604800000L);
 
@@ -63,14 +63,27 @@ class JwtPropertiesTest {
         }
 
         @Test
-        @DisplayName("정확히 32바이트 시크릿 통과")
-        void validate_Exactly32Bytes_Success() {
+        @DisplayName("정확히 64바이트 시크릿 통과 (HS512 경계)")
+        void validate_Exactly64Bytes_Success() {
             JwtProperties props = new JwtProperties();
-            props.setSecret("abcdefghijklmnopqrstuvwxyz123456"); // 32 chars
+            props.setSecret("a".repeat(64)); // 64 bytes — HS512 최소 길이
             props.setAccessExpiration(1800000L);
             props.setRefreshExpiration(604800000L);
 
             assertThatCode(props::validate).doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("63바이트 시크릿 거부 (HS512 경계 바로 아래 — 알고리즘 다운그레이드 차단)")
+        void validate_63Bytes_ThrowsException() {
+            JwtProperties props = new JwtProperties();
+            props.setSecret("a".repeat(63)); // 63 bytes — 64 미만이므로 거부되어야 함
+            props.setAccessExpiration(1800000L);
+            props.setRefreshExpiration(604800000L);
+
+            assertThatThrownBy(props::validate)
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("too short");
         }
     }
 }

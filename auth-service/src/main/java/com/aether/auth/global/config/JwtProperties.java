@@ -14,7 +14,8 @@ import java.nio.charset.StandardCharsets;
 @Setter
 public class JwtProperties {
 
-    private static final int MINIMUM_SECRET_LENGTH = 32;
+    // HS512 명시 통일: 512비트(64바이트) 키 강제. 32~63B면 Java가 HS256/384로 다운그레이드 → Python(HS512)과 불일치
+    private static final int MINIMUM_SECRET_LENGTH = 64;
 
     private String secret;
     private long accessExpiration;
@@ -26,13 +27,13 @@ public class JwtProperties {
             throw new IllegalStateException(
                     "JWT_SECRET is not set. "
                     + "Please set the JWT_SECRET environment variable. "
-                    + "The secret must be at least " + MINIMUM_SECRET_LENGTH + " characters long."
+                    + "The secret must be at least " + MINIMUM_SECRET_LENGTH + " bytes long."
             );
         }
         if (secret.getBytes(StandardCharsets.UTF_8).length < MINIMUM_SECRET_LENGTH) {
             throw new IllegalStateException(
                     "JWT_SECRET is too short. "
-                    + "The secret must be at least " + MINIMUM_SECRET_LENGTH + " bytes for HMAC-SHA256."
+                    + "The secret must be at least " + MINIMUM_SECRET_LENGTH + " bytes for HMAC-SHA512."
             );
         }
         log.info("JWT properties validated: accessExpiration={}ms, refreshExpiration={}ms",

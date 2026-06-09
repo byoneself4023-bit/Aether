@@ -1,16 +1,11 @@
 """포트폴리오 최적화 API 라우터"""
 
 from fastapi import APIRouter, Depends, HTTPException
-import numpy as np
 
 from app.middleware.auth import verify_jwt
 from app.schemas.portfolio import (
     OptimizeRequest,
     OptimizeResponse,
-    PortfolioMetricsResponse,
-    FrontierPoint,
-    OptimizationDiagnosticsResponse,
-    CovarianceValidationResponse,
 )
 from app.services.data import (
     get_returns_and_covariance,
@@ -24,6 +19,11 @@ from app.services.optimizer import (
     optimize_min_variance_with_diagnostics,
     optimize_max_sharpe_with_diagnostics,
     efficient_frontier,
+)
+from app.mappers.optimization_mapper import (
+    build_frontier,
+    format_portfolio_metrics,
+    map_diagnostics,
 )
 from app.utils.covariance import annualize, annualize_returns
 from app.middleware.logging import logger, log_optimization_context
@@ -103,26 +103,7 @@ def optimize_portfolio(
                     opt_result = optimize_max_sharpe_with_diagnostics(mu, cov, daily_rf)
 
                 result = opt_result.metrics
-                diag = opt_result.diagnostics
-
-                # 진단 정보를 응답 스키마로 변환
-                diagnostics_response = OptimizationDiagnosticsResponse(
-                    converged=diag.converged,
-                    iterations=diag.iterations,
-                    final_objective=diag.final_objective,
-                    condition_number=diag.condition_number,
-                    solver_message=diag.solver_message,
-                    gradient_norm=diag.gradient_norm,
-                    covariance_validation=CovarianceValidationResponse(
-                        is_valid=diag.covariance_validation.is_valid,
-                        condition_number=diag.covariance_validation.condition_number,
-                        is_positive_definite=diag.covariance_validation.min_eigenvalue > 0,
-                        min_eigenvalue=diag.covariance_validation.min_eigenvalue,
-                        max_correlation=diag.covariance_validation.max_correlation,
-                        issues=list(diag.covariance_validation.issues),
-                        regularized=diag.covariance_validation.was_regularized
-                    )
-                )
+                diagnostics_response = map_diagnostics(opt_result.diagnostics)
             else:
                 # 기존 방식 (진단 정보 없이)
                 if request.strategy == "min_variance":
@@ -130,10 +111,8 @@ def optimize_portfolio(
                 else:  # max_sharpe
                     result = optimize_max_sharpe(mu, cov, daily_rf)
 
-            # 연율화 메트릭
-            annual_return = float(result.expected_return * 252)
-            annual_vol = float(result.volatility * np.sqrt(252))
-            sharpe = (annual_return - request.rf) / annual_vol if annual_vol > 0 else 0
+            # 연율화 메트릭 (직렬화 → mapper)
+            metrics_response = format_portfolio_metrics(result, request.rf)
 
             # 비중 딕셔너리 생성
             weights_dict = {
@@ -145,21 +124,7 @@ def optimize_portfolio(
             frontier_points = None
             if request.include_frontier:
                 frontier = efficient_frontier(mu, cov, n_points=20, rf=daily_rf)
-                frontier_points = [
-                    FrontierPoint(
-                        expected_return=round(float(ret * 252), 6),
-                        volatility=round(float(vol * np.sqrt(252)), 6),
-                        weights={
-                            ticker: round(float(w), 4)
-                            for ticker, w in zip(valid_tickers, weights)
-                        }
-                    )
-                    for ret, vol, weights in zip(
-                        frontier.returns,
-                        frontier.volatilities,
-                        frontier.weights
-                    )
-                ]
+                frontier_points = build_frontier(frontier, valid_tickers)
 
             # 부분 실패 시 경고 메시지 추가
             if failed_tickers:
@@ -171,11 +136,7 @@ def optimize_portfolio(
 
             return OptimizeResponse(
                 weights=weights_dict,
-                metrics=PortfolioMetricsResponse(
-                    expected_return=round(annual_return, 6),
-                    volatility=round(annual_vol, 6),
-                    sharpe_ratio=round(sharpe, 4)
-                ),
+                metrics=metrics_response,
                 n_stocks=len(valid_tickers),
                 strategy=request.strategy,
                 period=(f"{request.start_date}~{request.end_date}"

@@ -27,6 +27,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -55,7 +56,9 @@ import static org.mockito.BDDMockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ResilienceTest {
 
-    private static final String TEST_SECRET = "ThisIsATestSecretKeyForJwtTokenGeneration123!";
+    // HS512(64바이트) 키 필요 — 짧은 키면 createAccessToken/createRefreshToken이 WeakKeyException
+    private static final String TEST_SECRET =
+            "ThisIsATestSecretKeyForJwtTokenGeneration1234567890AbCdEfGhIjKlMn";
     private SecretKey secretKey;
 
     @BeforeEach
@@ -136,9 +139,10 @@ class ResilienceTest {
             given(properties.getSecret()).willReturn(TEST_SECRET);
             given(properties.getRefreshExpiration()).willReturn(604800000L);
 
-            given(redisTemplate.opsForValue()).willReturn(valueOperations);
+            // ④ 원자화 후: 저장은 단일 Lua EVAL → execute()가 연결 실패를 그대로 전파해야 함
             willThrow(new RedisConnectionFailureException("Connection refused"))
-                    .given(valueOperations).set(anyString(), anyString(), anyLong(), any());
+                    .given(redisTemplate)
+                    .execute(any(RedisScript.class), anyList(), any(), any(), any());
 
             JwtTokenProvider tokenProvider = new JwtTokenProvider(properties, redisTemplate);
             tokenProvider.init();

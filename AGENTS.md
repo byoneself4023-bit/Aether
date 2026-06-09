@@ -92,7 +92,7 @@ npm run build                # 차단
 npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 강제)
 ```
 
-- **테스트 합산**: 519건 (llm 237 + portfolio 212 + auth 70). Phase 1 audit는 514건 기록(232/212/70) — H-4(`e9acdf8`) 후 prompt registry 테스트 5건 증가. (`docs/agent-capability-audit/05_evaluation_testing.md:§1` 표).
+- **테스트 합산**: 551건 (llm 237 + portfolio 233 + auth 81). 6원칙 4카드(④jwt-refresh / ①③jwt-algorithm / ⑤⑥validate-ticker / ②optimize-srp) 머지로 portfolio +21·auth +11. Phase 1 audit는 514건 기록(232/212/70) — H-4(`e9acdf8`) 후 prompt registry 테스트 5건 증가. (`docs/agent-capability-audit/05_evaluation_testing.md:§1` 표).
 - **린트/타입 (H-7 도입됨)**: ruff + black + mypy + pytest-cov 백엔드 4종 + tsc + eslint + vitest 프론트 3종 + markdownlint = 8종. 1차 도입은 측정값 -5% 임계 + lint/type 비차단 (CLAUDE.md §2 표).
 - **CI 파이프라인**: `Jenkinsfile:35-90` (백엔드 3종 병렬, llm/portfolio에 lint/type/cov 추가), `94-104` (frontend tsc/eslint/vitest/build), `109-115` (Lint Markdown 신규), `120-138` (docker build), `144-165` (push, main 한정), `171-193` (SSH 배포 + 4개 헬스체크).
 
@@ -131,7 +131,7 @@ npx --yes markdownlint-cli AGENTS.md CLAUDE.md docs/adr/*.md  # 차단 (MD040 �
 |---|---|---|
 | 백엔드 서비스 수 | 4 | docs/agent-capability-audit/01_architecture.md:§1 |
 | 인프라 컴포넌트 수 | 2 (postgres, redis) | docker-compose.yml:6-40 |
-| 테스트 합산 | 535 (270/195/70) — D-1로 −20 (test_experiment 제거 / `#22`) | 본 § §4 갱신 |
+| 테스트 합산 | 551 (llm 237 / portfolio 233 / auth 81) — 6원칙 4카드 머지 (portfolio +21 / auth +11) | 본 § §4 갱신 |
 | 도구 등록 (tool_registry) | 5종 (analyze_portfolio / explain_risk / summarize_backtest / get_recommendation / **search_knowledge_base**) — D-5 RAG 통합 | §10 + ADR 0005 + ADR 0018 |
 | 등록 프롬프트 수 | 8 (v1.0) — T-1b로 react_system_prompt 추가 | prompt_registry.py + ADR 0006 |
 | chat.py:/api/chat/analyze LLM 호출 | **ReAct 1 호출** (USE_REACT_AGENT=true 기본) / 절차적 4 호출 (fallback) | §10 + ADR 0006 |

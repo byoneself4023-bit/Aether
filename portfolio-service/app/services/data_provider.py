@@ -180,11 +180,18 @@ class YFinanceProvider:
         return returns
 
     def validate_ticker(self, ticker: str) -> bool:
-        """yfinance로 티커 유효성 검증 — retry 미적용 (실패 = invalid 처리)."""
-        try:
+        """yfinance로 티커 유효성 검증 — transient는 retry 후 전파(⑤/⑥), 진짜 invalid만 False."""
+
+        def _do_validate() -> bool:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="5d")
             return len(hist) > 0
+
+        try:
+            return _retry_with_backoff(_do_validate)
+        except (RateLimitError, NetworkError):
+            # transient 소진 — invalid로 위장하지 않고 전파 → CompositeProvider가 fallback 처리
+            raise
         except Exception as e:
             logger.warning(
                 "ticker_validation_failed",
